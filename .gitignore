@@ -1,0 +1,15 @@
+# 依赖（统一在 ~/.pi 执行 bun install）
+node_modules/
+
+# 敏感配置（example 版本已提交，复制后填真实 key）
+agent/auth.json
+agent/mcp.ts
+agent/models.json
+
+# 运行时生成
+agent/models-store.json
+agent/trust.json
+agent/sessions/
+agent/npm/
+
+.DS_Store
