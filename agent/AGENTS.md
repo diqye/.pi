@@ -7,6 +7,10 @@
   - 文件 `Bun.file()`,SQLite `bun:sqlite`,HTTP `Bun.serve()`
   - 仅 Bun 不支持时 fallback node
 
+## 系统工具
+- 用户要求复制/读剪贴板时，用系统命令 `pbpaste`（读）、`echo 内容 | pbcopy`（写）
+- 仅在直连失败时才加代理环境变量（避免走代理拖慢速度）：`export https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890 all_proxy=socks5://127.0.0.1:7890`
+
 ## 交流风格
 - 针对用户当前场景,不枚举所有可能
 - 缺关键信息先提问
