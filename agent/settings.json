@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.84.2",
+  "lastChangelogVersion": "0.84.4",
   "theme": "dark",
   "defaultThinkingLevel": "low",
   "defaultProvider": "zmexing",
@@ -7,9 +7,6 @@
   "npmCommand": [
     "bun"
   ],
-  "packages": [
-    "npm:pi-schedule-prompt",
-    "npm:@juicesharp/rpiv-btw"
-  ],
+  "packages": [],
   "editorPaddingX": 1
 }
