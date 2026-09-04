@@ -37,7 +37,7 @@ bun install
 
 | 扩展 | 说明 |
 |---|---|
-| `mcp-bridge` | pi 的 MCP 客户端，`/mcp` 支持交互式 server 开关 |
+| `mcp-bridge` | pi 的 MCP 客户端，`/mcp` 支持交互式 server 开关；server 可配 `lazy`（默认不连接）、`lazyTools`（工具注册但默认 OFF，`/tools` 开启） |
 | `model-alias.ts` | 模型别名 |
 | `piko.ts` | piko 集成 |
 | `privacy-guard.ts` | 隐私防护 |

@@ -3,6 +3,8 @@
  *
  * 复制为 mcp.ts 并填入真实地址/密钥（mcp.ts 已被 gitignore）。
  * lazy: true 的 server 启动时不自动连接，用 /mcp 交互面板或 /mcp on <name> 手动开启。
+ * lazyTools: 工具级开关，工具正常注册但默认不进活跃集（模型看不到），用 /tools 手动开启。
+ *   true = 该 server 全部工具；string[] = 仅列表中的（裸名或 server__tool 全名）。
  */
 export default {
   mcpServers: {
@@ -24,6 +26,13 @@ export default {
     //   command: "bunx",
     //   args: ["chrome-devtools-mcp@latest"],
     //   lazy: true,
+    // },
+    // lazyTools 示例：server 照常连接，但指定工具默认 OFF，/tools 手动开启
+    // "web-search": {
+    //   type: "http",
+    //   url: "https://example.com/mcp",
+    //   lazyTools: true,          // 全部工具默认 OFF
+    //   // lazyTools: ["webSearchPro"],  // 或仅个别工具，其余照常 ON
     // },
   },
 };
