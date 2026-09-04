@@ -18,6 +18,14 @@ pi 通过 `~/.pi/agent/extensions/mcp-bridge/` 扩展实现 MCP 客户端,把外
 4. 工具名格式:`${server}__${tool}`(双下划线分隔)
 5. 工具描述前缀 `[server]`,label 格式 `server.tool`
 
+## 工具级 lazy（lazyTools）
+server 配置项 `lazyTools: boolean | string[]`：
+- `true`：该 server 全部工具正常注册但默认不进活跃集（模型看不到），用 `/tools` 手动开启
+- `["webSearchPro"]`：仅列表中的工具默认 OFF，其余照常 ON；可写裸名或 `server__tool` 全名
+- 不配置：维持默认，连接后全部 ON
+- `/mcp off → on` 会重跑过滤：手动开启过的 lazy 工具会被重置回 OFF
+- 与 server 级 `lazy: true`（默认不连接）互不冲突，可叠加
+
 ## transport 支持
 - `stdio`(有 command 时默认):StdioClientTransport
 - `http`(有 url 时默认):StreamableHTTPClientTransport

@@ -12,6 +12,9 @@
  *
  * 支持 transport：stdio / http（Streamable HTTP）/ sse。
  * lazy: true 的 server 默认不启动，需手动开启。
+ * lazyTools: true | string[] 工具级 lazy：工具正常注册但不进活跃集（模型不可见），
+ *   用 /tools 手动开启。true = 该 server 全部工具；string[] = 仅列表中的
+ *   （支持裸名或 server__tool 全名）。不配置则维持连接后全部 ON。
  * MCP_DEBUG=true pi --no-session 开启 Debug log
  */
 
@@ -38,6 +41,8 @@ interface McpServerConfig {
   headers?: Record<string, string>;
   /** 默认 false: session 启动时不自动连接,通过 /mcp 手动开启 */
   lazy?: boolean;
+  /** 工具级 lazy: true=全部工具默认 OFF; string[]=仅列表中的默认 OFF(裸名或 server__全名)。注册但不在活跃集,/tools 可开 */
+  lazyTools?: boolean | string[];
 }
 
 interface McpConfig {
@@ -133,6 +138,16 @@ function toPiContent(raw: unknown[]): AgentToolResult<{ isError: boolean }>["con
   });
 }
 
+/** 计算 server 应默认 OFF(注册但不进活跃集)的工具名集合 */
+function resolveLazyTools(server: string, cfg: McpServerConfig | undefined): Set<string> {
+  const conf = cfg?.lazyTools;
+  if (!conf) return new Set<string>();
+  const all = serverTools.get(server) ?? [];
+  if (conf === true) return new Set(all);
+  const wanted = new Set(conf.map((n) => (n.startsWith(`${server}__`) ? n : `${server}__${n}`)));
+  return new Set(all.filter((n) => wanted.has(n)));
+}
+
 async function connectServer(pi: ExtensionAPI, name: string, cfg: McpServerConfig) {
   const existing = clients.get(name);
   if (existing) {
@@ -208,6 +223,14 @@ async function connectServer(pi: ExtensionAPI, name: string, cfg: McpServerConfi
         }
       },
     });
+  }
+  // 工具级 lazy: 注册后默认在活跃集,这里把 lazyTools 对应工具移出(模型不可见,/tools 可开)
+  const lazySet = resolveLazyTools(name, cfg);
+  if (lazySet.size > 0) {
+    const currentActive = pi.getActiveTools();
+    const next = currentActive.filter((n) => !lazySet.has(n));
+    if (next.length !== currentActive.length) pi.setActiveTools(next);
+    log(`lazyTools applied: ${name}`, { lazy: [...lazySet] });
   }
   connectionStatuses.set(name, { state: "connected", tools: tools.map((tool) => tool.name) });
   log(`✓ ${name}: 注册 ${tools.length} 个工具`);
@@ -309,10 +332,11 @@ export default async function (pi: ExtensionAPI) {
     await ensureInitialized({ only: name, notify });
     const status = connectionStatuses.get(name);
     if (status?.state === "connected") {
-      // off 后重新 on 的场景: 工具已注册但不在活跃集,需要补回
+      // off 后重新 on 的场景: 工具已注册但不在活跃集,需要补回(lazyTools 的除外)
+      const lazySet = resolveLazyTools(name, cfg);
       const toolNames = serverTools.get(name) ?? [];
       const currentActive = pi.getActiveTools();
-      const missing = toolNames.filter((n) => !currentActive.includes(n));
+      const missing = toolNames.filter((n) => !currentActive.includes(n) && !lazySet.has(n));
       if (missing.length > 0) pi.setActiveTools([...currentActive, ...missing]);
       notify?.(`✓ ${name} 已连接,${status.tools.length} 个工具可用`);
     } else if (status?.state === "failed") {
@@ -331,7 +355,7 @@ export default async function (pi: ExtensionAPI) {
       status: ConnectionStatus;
       lazy: boolean;
       active: boolean;
-      tools: Array<{ name: string; status: "success" | "fail" }>;
+      tools: Array<{ name: string; status: "success" | "fail"; lazy: boolean }>;
     }>;
   };
 
@@ -340,6 +364,7 @@ export default async function (pi: ExtensionAPI) {
       servers: servers.map(([name]) => {
         const status = connectionStatuses.get(name) ?? { state: "pending" as const };
         const cfg = servers.find(([n]) => n === name)?.[1];
+        const lazyToolSet = resolveLazyTools(name, cfg);
         return {
           name,
           status,
@@ -348,6 +373,7 @@ export default async function (pi: ExtensionAPI) {
           tools: (status.state === "connected" ? status.tools : []).map((tool) => ({
             name: tool,
             status: toolStatuses.get(`${name}__${tool}`) ?? "success",
+            lazy: lazyToolSet.has(`${name}__${tool}`),
           })),
         };
       }),
@@ -375,8 +401,9 @@ export default async function (pi: ExtensionAPI) {
         }
         for (const tool of tools) {
           const failTag = tool.status === "fail" ? " (fail)" : "";
+          const lazyTag = tool.lazy ? " (lazy)" : "";
           const color = tool.status === "fail" ? "error" : "dim";
-          box.addChild(new Text(theme.fg(color, `  ${tool.name}${failTag}`), 0, 0));
+          box.addChild(new Text(theme.fg(color, `  ${tool.name}${lazyTag}${failTag}`), 0, 0));
         }
       }
     }
