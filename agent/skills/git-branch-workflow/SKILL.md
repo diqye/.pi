@@ -15,12 +15,12 @@ description: 分支协作与开发流程规范。在执行 git 分支操作（�
 
 ## 分支命名
 
-格式：`姓名拼音/需求名/日期`（日期为拉分支当日 YYYYMMDD）
+格式：`<name>/<需求名>/<日期>`。`<name>` 取当前仓库 `git config user.name` 的值（不确定时先查，不要凭分支历史猜测缩写）；日期为拉分支当日 YYYYMMDD。
 
 ```
-qinzhenlong/scan-upload/20260915           # 需求分支
-qinzhenlong/hotfix-exam-timeout/20260918   # 紧急修复分支
-qinzhenlong/scan-upload-h5-page/20260916   # 多人协作的个人子分支（需求名-模块）
+<name>/scan-upload/20260915           # 需求分支
+<name>/hotfix-exam-timeout/20260918   # 紧急修复分支
+<name>/scan-upload-h5-page/20260916   # 多人协作的个人子分支（需求名-模块）
 ```
 
 ## 标准流程
@@ -41,8 +41,8 @@ qinzhenlong/scan-upload-h5-page/20260916   # 多人协作的个人子分支（�
 
 ## 执行要点（agent 操作时）
 
-- 帮用户拉分支：按命名格式起名，从 master 最新拉出，不用 name/dev；用户未告知姓名时，先 `git config user.name` 查询取名，不要用默认名（如 qy）
+- 帮用户拉分支：按命名格式起名，`<name>` 取 `git config user.name`，从 master 最新拉出，不用 name/dev；用户未告知姓名时，先 `git config user.name` 查询取名，不要用默认名（如 qy）
 - 帮用户合并：只做 需求分支→test 或 需求分支→master；用户要求 test→master 时先提醒红线，坚持则说明风险后执行
 - 合 test 出现大量与本次改动无关的冲突：不硬合，`git merge --abort` 退出，向用户说明可能是分叉/直接改 test 导致，建议找责任人确认或重建 test
 - 多人协作：需求主分支是唯一出口（唯一可合 test/master 的分支），个人子分支只向上合需求主分支（MR + 负责人 review）；同步 master 收敛到主分支一人执行
-- 紧急修复：从 master 拉 `姓名拼音/hotfix-描述/日期`，修复后分别合 test（回归）与 master（上线），删分支
+- 紧急修复：从 master 拉 `<name>/hotfix-描述/日期`，修复后分别合 test（回归）与 master（上线），删分支
