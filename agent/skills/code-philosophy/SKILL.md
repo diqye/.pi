@@ -17,6 +17,7 @@ description: 如何写代码的工程哲学与规范：架构演进、数据流�
 ## Reuse
 
 - Reuse code with tool value: abstract, single-responsibility utilities (e.g., `map`) - this is what belongs in shared/common functions
+- **Prefer runtime built-ins before adding dependencies**: check Bun/Node/browser/Web-standard APIs first (e.g. `Bun.YAML.parse` vs the `yaml` package, `node:fs` renameSync vs a library). Verify on the actual runtime version — stale memory about what's "built-in" causes needless dependencies
 - Share by **same business domain**, not by same code shape
 - Entry source files serve as a clear logic overview
 - Use the entry file to orchestrate sub-logic; sub-logic modules should not import one another.
@@ -38,6 +39,7 @@ description: 如何写代码的工程哲学与规范：架构演进、数据流�
 1. Intuitive code needs no comments
 2. Non-intuitive code must explain **why**, not what
 3. Comment the intent behind hacks, trade-offs, edge cases, or counterintuitive writes — not a restatement of the code
+4. **Comments live next to the code they describe (single source of truth)**: structural inventories maintained in a distant header comment (route tables, file lists, API summaries) WILL drift from reality — put per-item comments at the point of registration/definition instead. Drop comments that merely duplicate the nearby one; keep only those carrying independent information
 
 ## React
 
