@@ -6,7 +6,8 @@
   "description": "~/.pi 配置仓库:扩展运行时依赖 + 类型检查工具链,统一 bun install",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1",
-    "node-cron": "4.6.0"
+    "node-cron": "4.6.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "0.84.2",
