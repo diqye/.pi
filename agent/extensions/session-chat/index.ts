@@ -473,9 +473,8 @@ export default function sessionChatExtension(pi: ExtensionAPI) {
     uiCtx = ctx;
     myCwd = ctx.cwd;
     myDesc = pi.getSessionName() ?? basename(myCwd);
-    // 默认 OFF：未上线时工具不可见，ensureOnline 时随状态激活；
+    // 上线时随状态激活（ensureOnline）；默认 OFF 由 tools 扩展统一处理
     // PI_SESSION_CHAT=1 环境变量启动时自动上线（pi 不支持自定义 --flag，环境变量是唯一启动期开关）
-    pi.setActiveTools(pi.getActiveTools().filter((n) => n !== TOOL));
     if (/^(1|true|on|yes)$/i.test(process.env.PI_SESSION_CHAT ?? "")) ensureOnline();
     refreshStatus();
   });

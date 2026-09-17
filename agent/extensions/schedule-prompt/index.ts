@@ -170,8 +170,6 @@ export default function schedulePromptExtension(pi: ExtensionAPI) {
 
   pi.on("session_start", (_event, ctx) => {
     uiCtx = ctx;
-    // 默认 OFF：从活跃工具中移除自己，由 /tools 手动开启
-    pi.setActiveTools(pi.getActiveTools().filter((n) => n !== TOOL));
     refreshStatus();
   });
 

@@ -3,44 +3,18 @@
  *
  * /tools 命令：所有工具（built-in + extension + MCP）的统一开关。
  * 使用 SettingsList 组件，原地 toggle，无需每次重建列表。
- * 持久化到 session 分支，session_start / session_tree 时恢复。
  *
- * 与 mcp-bridge 解耦：MCP 工具注册后默认 OFF，由 /tools 统一启用。
+ * 默认策略集中在此：session_start 时保留 pi 默认激活的 builtin 工具，
+ * 其余（builtin 中默认未激活的、扩展/MCP 工具）全关，
+ * 需要时由用户在 /tools 手动开启，不做持久化（reload/resume 后回到默认）。
+ * 各扩展无需再自行 inactive 自己的工具。
  */
 
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { getSettingsListTheme } from "@earendil-works/pi-coding-agent";
 import { Container, type SettingItem, SettingsList } from "@earendil-works/pi-tui";
 
-// 持久化到 session 的状态：当前启用的工具名集合
-interface ToolsState {
-  enabledTools: string[];
-}
-
 export default function toolsExtension(pi: ExtensionAPI) {
-  // 从 session 分支恢复最新的 tools-config，并应用到活跃工具
-  function restoreFromBranch(ctx: ExtensionContext) {
-    const allToolNames = pi.getAllTools().map((t) => t.name);
-    const branchEntries = ctx.sessionManager.getBranch();
-    let savedTools: string[] | undefined;
-
-    for (const entry of branchEntries) {
-      if (entry.type === "custom" && entry.customType === "tools-config") {
-        const data = entry.data as ToolsState | undefined;
-        if (data?.enabledTools) {
-          savedTools = data.enabledTools;
-        }
-      }
-    }
-
-    if (savedTools) {
-      // 仅恢复当前仍存在的工具；未注册的（如尚未连接的 MCP 工具）忽略
-      const valid = savedTools.filter((t) => allToolNames.includes(t));
-      pi.setActiveTools(valid);
-    }
-    // 无持久化记录时不覆盖默认活跃工具（基础工具）
-  }
-
   pi.registerCommand("tools", {
     description: "Enable/disable tools",
     handler: async (_args, ctx) => {
@@ -98,10 +72,6 @@ export default function toolsExtension(pi: ExtensionAPI) {
                 ctx.ui.notify(`已禁用 ${id}`, "info");
               }
             }
-            // 持久化当前完整活跃集，供 reload / 分支导航恢复
-            pi.appendEntry<ToolsState>("tools-config", {
-              enabledTools: pi.getActiveTools(),
-            });
           },
           () => done(undefined),
         );
@@ -119,13 +89,15 @@ export default function toolsExtension(pi: ExtensionAPI) {
     },
   });
 
-  // 恢复持久化的工具选择
-  pi.on("session_start", async (_event, ctx) => {
-    restoreFromBranch(ctx);
-  });
-
-  // 分支导航时恢复对应分支的工具选择
-  pi.on("session_tree", async (_event, ctx) => {
-    restoreFromBranch(ctx);
+  // 默认策略：保留 pi 默认激活的 builtin 工具（read/bash/edit/write，
+  // 尊重 settings defaultTools / CLI --tools 配置），其余全关，用户经 /tools 手动开启
+  pi.on("session_start", () => {
+    const builtin = new Set(
+      pi
+        .getAllTools()
+        .filter((t) => t.sourceInfo.source === "builtin")
+        .map((t) => t.name),
+    );
+    pi.setActiveTools(pi.getActiveTools().filter((name) => builtin.has(name)));
   });
 }
