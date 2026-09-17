@@ -1,11 +1,7 @@
 # 全局指令
 
 ## 运行时
-- 优先 Bun,不用 node/npm/npx/ts-node
-  - 跑脚本/服务 `bun`,包执行 `bunx`,测试 `bun test`,类型检查 `bunx tsc`
-  - 包路径 `bun pm ls -g` / `require.resolve`
-  - 文件 `Bun.file()`,SQLite `bun:sqlite`,HTTP `Bun.serve()`
-  - 仅 Bun 不支持时 fallback node
+- 优先 Bun,不用 node/npm/npx/ts-node(细节见 bun skill)
 
 ## 系统工具
 - 用户要求复制/读剪贴板时，用系统命令 `pbpaste`（读）、`echo 内容 | pbcopy`（写）
