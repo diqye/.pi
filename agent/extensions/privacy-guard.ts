@@ -77,8 +77,13 @@ async function askWithNote(
 // 只读模式：仅会话期间有效，不持久化（reload / 切换会话后自动重置）
 let readOnlyMode = false;
 
+// 守护总开关：仅会话期间有效，不持久化（reload / 切换会话后自动重置）
+let guardEnabled = true;
+
 export default function privacyGuard(pi: ExtensionAPI) {
   pi.on("tool_call", async (event, ctx) => {
+    // 总开关关闭：跳过所有守护（含只读模式）
+    if (!guardEnabled) return;
     // 只读模式：所有写操作需用户确认（不持久化，仅会话期间）
     if (readOnlyMode) {
       if (isToolCallEventType("edit", event) || isToolCallEventType("write", event)) {
@@ -170,9 +175,29 @@ export default function privacyGuard(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("privacy-guard", {
-    description: "Show protected paths guarded by confirmation prompts",
-    handler: async (_args, ctx) => {
-      ctx.ui.notify(`Privacy guard enabled for:\n${PROTECTED_PATHS.map((p) => `- ${p}`).join("\n")}`, "info");
+    description: "查看/开关隐私守护（会话期间有效，不持久化）用法：留空查看 | on | off",
+    handler: async (args, ctx) => {
+      const arg = args.trim().toLowerCase();
+      if (arg === "on" || arg === "off") {
+        guardEnabled = arg === "on";
+        ctx.ui.setStatus("privacy-guard", guardEnabled ? undefined : "🛡 无防护");
+        ctx.ui.notify(
+          guardEnabled ? "🛡 隐私守护已开启" : "🛡 隐私守护已关闭（本会话内不再拦截）",
+          guardEnabled ? "info" : "warning",
+        );
+        return;
+      }
+      if (arg !== "") {
+        ctx.ui.notify(`用法：/privacy-guard [on|off]　当前：${guardEnabled ? "开启" : "关闭"}`, "info");
+        return;
+      }
+      const status = guardEnabled
+        ? `守护状态：✅ 开启（只读模式：${readOnlyMode ? "🔒 开启" : "关闭"}）\n保护路径：`
+        : "守护状态：❌ 关闭（本会话内不再拦截）";
+      ctx.ui.notify(
+        `${status}\n${guardEnabled ? PROTECTED_PATHS.map((p) => `- ${p}`).join("\n") : ""}`,
+        "info",
+      );
     },
   });
 
