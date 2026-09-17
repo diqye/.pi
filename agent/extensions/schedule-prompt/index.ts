@@ -53,7 +53,7 @@ export default function schedulePromptExtension(pi: ExtensionAPI) {
   }
 
   function listText(): string {
-    if (jobs.size === 0) return "没有定时任务（纯内存，进程退出即消失）";
+    if (jobs.size === 0) return "No scheduled jobs (in-memory only, lost when the process exits)";
     return [...jobs.values()]
       .map((j) => {
         const next = j.task.getNextRun();
@@ -75,33 +75,33 @@ export default function schedulePromptExtension(pi: ExtensionAPI) {
     name: TOOL,
     label: "Schedule Prompt",
     description:
-      "管理定时 prompt 注入任务（cron 表达式，进程内存态，不持久化）。" +
-      "add 需要 cron（5 字段：分 时 日 月 周，支持 6/7 字段扩展）和 prompt；" +
-      "remove 需要 id；list/clear 无额外参数。",
-    promptSnippet: "Schedule prompts to be injected periodically on cron expressions (in-memory only)",
+      "Manage scheduled prompt-injection jobs (cron, in-memory only, not persisted). " +
+      "add requires cron (5 fields: minute hour day month weekday; 6/7-field forms supported) and prompt; " +
+      "remove requires id; list/clear take no extra parameters.",
+    promptSnippet: "Schedule cron-based prompt injections (in-memory only)",
     promptGuidelines: [
       "Use schedule_prompt when the user asks to run a prompt periodically on a cron schedule; tasks vanish when the process exits.",
     ],
     parameters: Type.Object({
       action: StringEnum(["add", "list", "remove", "clear"]),
       cron: Type.Optional(
-        Type.String({ description: "cron 表达式（如 '*/30 * * * *' 每 30 分钟），add 时必填" }),
+        Type.String({ description: "Cron expression (e.g. '*/30 * * * *' = every 30 minutes), required for add" }),
       ),
-      prompt: Type.Optional(Type.String({ description: "到点注入的 prompt 内容，add 时必填" })),
-      id: Type.Optional(Type.String({ description: "任务 id，remove 时必填" })),
+      prompt: Type.Optional(Type.String({ description: "Prompt content to inject on schedule, required for add" })),
+      id: Type.Optional(Type.String({ description: "Job id, required for remove" })),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       if (params.action === "add") {
         if (!params.cron || !params.prompt) {
           return {
-            content: [{ type: "text", text: "ERROR: add 需要 cron 和 prompt 两个参数" }],
+            content: [{ type: "text", text: "ERROR: add requires both cron and prompt" }],
             details: {},
             isError: true,
           };
         }
         if (!validate(params.cron)) {
           return {
-            content: [{ type: "text", text: `ERROR: 非法 cron 表达式: ${params.cron}` }],
+            content: [{ type: "text", text: `ERROR: invalid cron expression: ${params.cron}` }],
             details: {},
             isError: true,
           };
@@ -117,7 +117,7 @@ export default function schedulePromptExtension(pi: ExtensionAPI) {
           content: [
             {
               type: "text",
-              text: `已添加 ${id}: ${params.cron}\nnext: ${next ? next.toLocaleString() : "-"}\n当前任务数: ${jobs.size}`,
+              text: `Added ${id}: ${params.cron}\nnext: ${next ? next.toLocaleString() : "-"}\nactive jobs: ${jobs.size}`,
             },
           ],
           details: { jobs: jobsSummary() },
@@ -132,7 +132,7 @@ export default function schedulePromptExtension(pi: ExtensionAPI) {
       if (params.action === "remove") {
         if (!params.id || !jobs.has(params.id)) {
           return {
-            content: [{ type: "text", text: `ERROR: 任务不存在: ${params.id ?? "(未提供 id)"}` }],
+            content: [{ type: "text", text: `ERROR: job not found: ${params.id ?? "(no id provided)"}` }],
             details: { jobs: jobsSummary() },
             isError: true,
           };
@@ -141,7 +141,7 @@ export default function schedulePromptExtension(pi: ExtensionAPI) {
         jobs.delete(params.id);
         refreshStatus();
         return {
-          content: [{ type: "text", text: `已移除 ${params.id}，剩余任务数: ${jobs.size}` }],
+          content: [{ type: "text", text: `Removed ${params.id}, jobs left: ${jobs.size}` }],
           details: { jobs: jobsSummary() },
         };
       }
@@ -149,12 +149,12 @@ export default function schedulePromptExtension(pi: ExtensionAPI) {
         destroyAll();
         refreshStatus();
         return {
-          content: [{ type: "text", text: "已清空全部定时任务" }],
+          content: [{ type: "text", text: "Cleared all scheduled jobs" }],
           details: { jobs: [] },
         };
       }
       return {
-        content: [{ type: "text", text: `ERROR: 未知 action: ${params.action}` }],
+        content: [{ type: "text", text: `ERROR: unknown action: ${params.action}` }],
         details: {},
         isError: true,
       };

@@ -84,6 +84,7 @@ export default function privacyGuard(pi: ExtensionAPI) {
   pi.on("tool_call", async (event, ctx) => {
     // 总开关关闭：跳过所有守护（含只读模式）
     if (!guardEnabled) return;
+
     // 只读模式：所有写操作需用户确认（不持久化，仅会话期间）
     if (readOnlyMode) {
       if (isToolCallEventType("edit", event) || isToolCallEventType("write", event)) {
@@ -94,8 +95,8 @@ export default function privacyGuard(pi: ExtensionAPI) {
         );
         if (!r || !r.ok) {
           const reason = r?.note
-            ? `只读模式下用户拒绝 ${event.toolName}：${event.input.path} · 备注：${r.note}`
-            : `只读模式下用户拒绝 ${event.toolName}：${event.input.path}`;
+            ? `User rejected ${event.toolName} in read-only mode: ${event.input.path} (note: ${r.note})`
+            : `User rejected ${event.toolName} in read-only mode: ${event.input.path}`;
           return { block: true, reason };
         }
         if (r.note) ctx.ui.notify(`只读模式 · 已允许写入 ${event.input.path} · 备注：${r.note}`, "info");
@@ -109,8 +110,8 @@ export default function privacyGuard(pi: ExtensionAPI) {
         );
         if (!r || !r.ok) {
           const reason = r?.note
-            ? `只读模式下用户拒绝该 bash 命令 · 备注：${r.note}`
-            : "只读模式下用户拒绝该 bash 命令";
+            ? `User rejected this bash command in read-only mode (note: ${r.note})`
+            : "User rejected this bash command in read-only mode";
           return { block: true, reason };
         }
         if (r.note) ctx.ui.notify(`只读模式 · 已允许执行 bash · 备注：${r.note}`, "info");
@@ -128,7 +129,7 @@ export default function privacyGuard(pi: ExtensionAPI) {
       );
       if (!r || !r.ok) {
         const reason = r?.note
-          ? `User denied read access to ${event.input.path} · 备注：${r.note}`
+          ? `User denied read access to ${event.input.path} (note: ${r.note})`
           : `User denied read access to ${event.input.path}`;
         return { block: true, reason };
       }
@@ -147,7 +148,7 @@ export default function privacyGuard(pi: ExtensionAPI) {
       );
       if (!r || !r.ok) {
         const reason = r?.note
-          ? `User denied ${event.toolName} access to ${targetPath} · 备注：${r.note}`
+          ? `User denied ${event.toolName} access to ${targetPath} (note: ${r.note})`
           : `User denied ${event.toolName} access to ${targetPath}`;
         return { block: true, reason };
       }
@@ -166,7 +167,7 @@ export default function privacyGuard(pi: ExtensionAPI) {
       );
       if (!r || !r.ok) {
         const reason = r?.note
-          ? `User denied bash access to protected paths · 备注：${r.note}`
+          ? `User denied bash access to protected paths (note: ${r.note})`
           : "User denied bash access to protected paths";
         return { block: true, reason };
       }

@@ -105,10 +105,10 @@ export default function sessionChatExtension(pi: ExtensionAPI) {
   }
 
   function peerListText(): string {
-    if (!online) return "未上线（/peers 开启）";
-    if (peers.size === 0) return "在线 peer：无";
+    if (!online) return "Offline (enable via /peers)";
+    if (peers.size === 0) return "Online peers: none";
     return (
-      "在线 peer：\n" +
+      "Online peers:\n" +
       [...peers.values()]
         .map((p) => `- ${p.name} (pid ${p.pid}, ${p.cwd}): ${truncate(p.desc, 40)}`)
         .join("\n")
@@ -249,41 +249,41 @@ export default function sessionChatExtension(pi: ExtensionAPI) {
   // 不能完全裸奔：compaction 会把旧消息里的指令文本摘要掉，裸消息会退化为停下来问用户
   function hintFor(m: Extract<Wire, { type: "msg" }>): string {
     if (m.fromRole === "user")
-      return `(用 session_msg 的 send 回复对方，to 填 pid ${m.fromPid})`;
+      return `(Reply to this peer via session_msg send, with to set to pid ${m.fromPid})`;
     if (!hintedPeers.has(m.fromPid)) {
       hintedPeers.add(m.fromPid);
-      return `(可自主用 session_msg 的 send 回复对方推进协作，无需用户确认；对话目标达成或遇分歧时总结告知用户。此 peer 的后续消息均遵循本指令)`;
+      return `(You may autonomously reply to this peer via session_msg send to advance the collaboration without user confirmation; when the goal is reached or a disagreement arises, summarize and inform the user. All subsequent messages from this peer follow this instruction)`;
     }
-    return `(同前指令：自主用 send 回复推进)`;
+    return `(As before: autonomously reply via send to advance)`;
   }
 
   function resolveTarget(input: string): { ok: true; peer: Peer } | { ok: false; error: string } {
     if (/^\d+$/.test(input)) {
       const p = peers.get(Number(input));
-      return p ? { ok: true, peer: p } : { ok: false, error: `无 pid=${input} 的 peer` };
+      return p ? { ok: true, peer: p } : { ok: false, error: `No peer with pid=${input}` };
     }
     const hits = [...peers.values()].filter((p) => p.name === input);
     if (hits.length === 1) return { ok: true, peer: hits[0] };
-    if (hits.length === 0) return { ok: false, error: `无名为 "${input}" 的 peer。\n${peerListText()}` };
+    if (hits.length === 0) return { ok: false, error: `No peer named "${input}".\n${peerListText()}` };
     return {
       ok: false,
       error:
-        `多个 peer 名为 "${input}"，请用 pid：\n` +
+        `Multiple peers named "${input}", use pid instead:\n` +
         hits.map((p) => `  pid ${p.pid}  ${p.cwd}`).join("\n"),
     };
   }
 
   function sendTo(peer: Peer, text: string, role: "user" | "agent"): string {
-    if (!online || !sock) return "ERROR: 未上线，请先在 /peers 中开启";
+    if (!online || !sock) return "ERROR: not online; enable via /peers first";
     post({ type: "msg", fromPid: process.pid, fromCwd: myCwd, fromRole: role, toPid: peer.pid, text });
-    return `已发送 → ${peer.name} (pid ${peer.pid}): ${text}`;
+    return `Sent → ${peer.name} (pid ${peer.pid}): ${text}`;
   }
 
   function setDesc(desc: string, manual: boolean): string {
     myDesc = desc;
     if (manual) descManual = true;
     if (online) post({ type: "presence", pid: process.pid, cwd: myCwd, desc: myDesc });
-    return `desc 已更新: ${desc}`;
+    return `desc updated: ${desc}`;
   }
 
   // ---------- 工具（活跃随 /peers 上下线联动） ----------
@@ -292,30 +292,30 @@ export default function sessionChatExtension(pi: ExtensionAPI) {
     name: TOOL,
     label: "Session Msg",
     description:
-      "与其他 pi 实例的 session 通信（需先在 /peers 上线）。" +
-      "send 需要 to（pid 或 basename）和 text；set-desc 设置自己的一句自我描述（广播给所有 peer）；" +
-      "list 列出在线 peer 及其描述。",
-    promptSnippet: "Send messages to peer pi sessions on this machine (requires /peers online)",
+      "Communicate with peer pi sessions on this machine (requires going online via /peers). " +
+      "send requires to (pid or basename) and text; set-desc sets your one-line self-description (broadcast to all peers); " +
+      "list shows online peers and their descriptions.",
+    promptSnippet: "Send messages to peer pi sessions on this machine (/peers online)",
     promptGuidelines: [
       "Use session_msg to talk with other live pi sessions when the user wants cross-session discussion; pick peers by their description in list output.",
     ],
     parameters: Type.Object({
       action: StringEnum(["send", "list", "set-desc"]),
-      to: Type.Optional(Type.String({ description: "目标 peer：pid（唯一）或 basename，send 时必填" })),
-      text: Type.Optional(Type.String({ description: "消息内容，send 时必填" })),
-      desc: Type.Optional(Type.String({ description: "set-desc 时必填：一句话自我描述，会广播更新" })),
+      to: Type.Optional(Type.String({ description: "Target peer: pid (unique) or basename, required for send" })),
+      text: Type.Optional(Type.String({ description: "Message content, required for send" })),
+      desc: Type.Optional(Type.String({ description: "Required for set-desc: one-line self-description, broadcast to peers" })),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
       if (params.action === "send") {
         if (!params.to || !params.text)
           return {
-            content: [{ type: "text", text: "ERROR: send 需要 to 和 text" }],
+            content: [{ type: "text", text: "ERROR: send requires to and text" }],
             details: {},
             isError: true,
           };
         if (!online)
           return {
-            content: [{ type: "text", text: "ERROR: 未上线，请让用户在 /peers 中开启" }],
+            content: [{ type: "text", text: "ERROR: not online; ask the user to enable it via /peers" }],
             details: {},
             isError: true,
           };
@@ -329,14 +329,14 @@ export default function sessionChatExtension(pi: ExtensionAPI) {
       if (params.action === "set-desc") {
         if (!params.desc)
           return {
-            content: [{ type: "text", text: "ERROR: set-desc 需要 desc" }],
+            content: [{ type: "text", text: "ERROR: set-desc requires desc" }],
             details: {},
             isError: true,
           };
         return { content: [{ type: "text", text: setDesc(params.desc, true) }], details: {} };
       }
       return {
-        content: [{ type: "text", text: `ERROR: 未知 action: ${params.action}` }],
+        content: [{ type: "text", text: `ERROR: unknown action: ${params.action}` }],
         details: {},
         isError: true,
       };
