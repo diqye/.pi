@@ -138,6 +138,13 @@ function toPiContent(raw: unknown[]): AgentToolResult<{ isError: boolean }>["con
   });
 }
 
+/** promptSnippet: 系统提示词 Available tools 里的一行简短英文摘要；取服务端描述首句，按词边界截断 */
+function snippetFor(tool: { name: string; description?: string }): string {
+  const first = (tool.description ?? "").split(/[.!?\n。]/)[0]?.trim() ?? "";
+  const text = first.length > 0 ? first : `${tool.name} MCP tool (no server description)`;
+  return text.length > 70 ? `${text.slice(0, 69).replace(/\s+\S*$/, "")}…` : text;
+}
+
 /** 计算 server 应默认 OFF(注册但不进活跃集)的工具名集合 */
 function resolveLazyTools(server: string, cfg: McpServerConfig | undefined): Set<string> {
   const conf = cfg?.lazyTools;
@@ -203,6 +210,7 @@ async function connectServer(pi: ExtensionAPI, name: string, cfg: McpServerConfi
       name: toolName,
       label: `${name}.${tool.name}`,
       description: `[${name}] ${tool.description ?? tool.name}`,
+      promptSnippet: snippetFor(tool),
       // MCP inputSchema 本身就是 JSON Schema，与 typebox schema 运行时同构
       parameters: schema as never,
       async execute(_id, params) {
