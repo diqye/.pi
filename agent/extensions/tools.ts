@@ -8,11 +8,13 @@
  * 其余（builtin 中默认未激活的、扩展/MCP 工具）全关，
  * 需要时由用户在 /tools 手动开启，不做持久化（reload/resume 后回到默认）。
  * 各扩展无需再自行 inactive 自己的工具。
+ * 例外：PI_TOOLS_ON 环境变量（冒号分隔）指定的工具名默认激活。
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { getSettingsListTheme } from "@earendil-works/pi-coding-agent";
 import { Container, type SettingItem, SettingsList } from "@earendil-works/pi-tui";
+import { toolsOnFromEnv } from "../util/tools-env.js";
 
 export default function toolsExtension(pi: ExtensionAPI) {
   pi.registerCommand("tools", {
@@ -90,7 +92,8 @@ export default function toolsExtension(pi: ExtensionAPI) {
   });
 
   // 默认策略：保留 pi 默认激活的 builtin 工具（read/bash/edit/write，
-  // 尊重 settings defaultTools / CLI --tools 配置），其余全关，用户经 /tools 手动开启
+  // 尊重 settings defaultTools / CLI --tools 配置），其余全关，用户经 /tools 手动开启；
+  // PI_TOOLS_ON 白名单（如 web_search:session_msg）放行
   pi.on("session_start", () => {
     const builtin = new Set(
       pi
@@ -98,6 +101,7 @@ export default function toolsExtension(pi: ExtensionAPI) {
         .filter((t) => t.sourceInfo.source === "builtin")
         .map((t) => t.name),
     );
-    pi.setActiveTools(pi.getActiveTools().filter((name) => builtin.has(name)));
+    const keep = toolsOnFromEnv();
+    pi.setActiveTools(pi.getActiveTools().filter((name) => builtin.has(name) || keep.has(name)));
   });
 }

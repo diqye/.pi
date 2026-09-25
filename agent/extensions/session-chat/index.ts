@@ -4,7 +4,7 @@
  * 同机多 pi 实例互通（UDP 多播，进程内存态 peer 表，退出即消失）。
  *
  * - /peers：上线开关 + desc 编辑 + 在线 peer 列表（basename / desc / cwd）；
- *   PI_SESSION_CHAT=1 环境变量启动时自动上线
+ *   PI_TOOLS_ON 含 session_msg 时启动自动上线（与 tools 扩展白名单同一变量）
  * - /msg <pid|basename> <text>：用户直发消息（pid 优先；basename 歧义时列候选提示用 pid）
  * - 工具 session_msg（活跃随 /peers 上下线自动增减）：send / list / set-desc
  *   （上线即可用，AI 可主动跨 session 发消息；下线自动移除，避免无效工具占位）
@@ -17,6 +17,7 @@
  */
 
 import dgram from "node:dgram";
+import { toolsOnFromEnv } from "../../util/tools-env.js";
 import { basename } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { getSettingsListTheme } from "@earendil-works/pi-coding-agent";
@@ -474,8 +475,8 @@ export default function sessionChatExtension(pi: ExtensionAPI) {
     myCwd = ctx.cwd;
     myDesc = pi.getSessionName() ?? basename(myCwd);
     // 上线时随状态激活（ensureOnline）；默认 OFF 由 tools 扩展统一处理
-    // PI_SESSION_CHAT=1 环境变量启动时自动上线（pi 不支持自定义 --flag，环境变量是唯一启动期开关）
-    if (/^(1|true|on|yes)$/i.test(process.env.PI_SESSION_CHAT ?? "")) ensureOnline();
+    // PI_TOOLS_ON 含 session_msg 时自动上线（pi 不支持自定义 --flag，环境变量是唯一启动期开关）
+    if (toolsOnFromEnv().has(TOOL)) ensureOnline();
     refreshStatus();
   });
 
