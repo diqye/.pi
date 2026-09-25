@@ -42,6 +42,8 @@ bun install
 | `piko.ts` | piko 集成 |
 | `privacy-guard.ts` | 隐私防护 |
 | `tools.ts` | 自定义工具 |
+| `zhipu-tools.ts` | 智谱 REST 工具：`web_search`（search_pro 实时搜索）、`analyze_image`（GLM 视觉识图/OCR），凭证热生效，默认 OFF |
+| `trim-context.ts` | context 裁剪：`/trim <n>` 轮次截断（落 compaction 检查点，会话文件保留全史，`/tree` 可回看）；`/trim tool <n>` 钉分界线裁剪 tool result（分界前替换为 `[Content removed]` 标记，之后及新增永久原文；状态以 turn=false 消息内嵌 session，重复执行以最后一条为准，加大 n 可放回）；`/trim show` 统计 tokens 占比与节省量 |
 | `schedule-prompt` | cron 定时注入 prompt（默认 OFF，`/tools` 开启，`/schedule` 查看，进程内存态） |
 | `session-chat` | 同机多 pi 实例互通（UDP 多播组）；`/peers` 上下线/描述/ping，`/msg <pid\|name> <text>` 直发；工具 `session_msg` 活跃随 `/peers` 上下线联动；`PI_SESSION_CHAT=1` 启动自动上线 |
 
@@ -52,6 +54,7 @@ bun install
 | `changelog` | CHANGELOG.md 段结构与冻结规则 |
 | `code-philosophy` | 工程哲学与 TS/React 编码规范 |
 | `conventional-commits` | 约定式提交规范 |
+| `git-branch-workflow` | 分支协作与提测/上线/hotfix 流程 |
 | `pi-paths` | pi 安装位置与配置路径速查 |
 | `pi-mcp-bridge` | pi MCP 客户端实现速查（随 mcp-bridge 扩展分发） |
 | `wenqi` | 以文气为核心的写作方法与文字修改 |
