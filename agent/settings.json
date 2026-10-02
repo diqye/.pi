@@ -1,8 +1,16 @@
 {
-  "lastChangelogVersion": "0.84.4",
+  "lastChangelogVersion": "1.0.0",
   "theme": "dark",
   "defaultThinkingLevel": "low",
-  "defaultTools": ["read", "bash", "edit", "write", "grep"],
+  "defaultTools": [
+    "read",
+    "bash",
+    "edit",
+    "write",
+    "grep",
+    "+codemode",
+    "+tool_search"
+  ],
   "defaultProvider": "zmexing",
   "defaultModel": "glm-5.3",
   "npmCommand": [

@@ -3,7 +3,7 @@
  *
  * 定时注入 prompt（cron 表达式，node-cron v4 调度）。
  *
- * - 工具 schedule_prompt 默认 OFF，需在 /tools 中手动开启
+ * - 工具 schedule_prompt 为 codemode exposure：始终可调（codemode 脚本），无需 /tools 开启
  *   （tools.ts 的 session_start 恢复在本扩展之后执行，兼容已持久化的启用状态）
  * - 任务纯内存：不 appendEntry，session_shutdown 销毁，进程退出即消失
  * - 注入用 pi.sendMessage（custom message），AI 可感知这是定时触发而非用户输入
@@ -74,6 +74,7 @@ export default function schedulePromptExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: TOOL,
     label: "Schedule Prompt",
+    exposure: "codemode",
     description:
       "Manage scheduled prompt-injection jobs (cron, in-memory only, not persisted). " +
       "add requires cron (5 fields: minute hour day month weekday; 6/7-field forms supported) and prompt; " +

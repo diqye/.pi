@@ -7,7 +7,7 @@
  *
  * - 凭证热生效：每次调用现读 ~/.pi/agent/auth.json（zhipu 条目，缺省回退
  *   zai-coding-cn——同一开放平台、同格式 key），改完无需重启
- * - 默认 OFF：session_start 移出活跃集，由 /tools 手动开启
+ * - codemode exposure：注册即始终可调（codemode 脚本），不进活跃集，无需 /tools 开启
  * - 所有失败（缺凭证 / 网络 / 超时 / 文件不存在 / 超大）返回结构化错误文本
  *   而非抛异常，LLM 理解原因后自行决定：换参数重试 / 转告用户 / 放弃
  */
@@ -148,6 +148,7 @@ export default function zhipuToolsExtension(pi: ExtensionAPI) {
 	pi.registerTool({
 		name: WEB_SEARCH,
 		label: "Web Search",
+		exposure: "codemode",
 		description:
 			"Search the web via the Zhipu Web Search API (search_pro) for up-to-date information beyond " +
 			"training data (news, prices, release versions, docs). Keep query short (<70 chars); " +
@@ -197,6 +198,7 @@ export default function zhipuToolsExtension(pi: ExtensionAPI) {
 	pi.registerTool({
 		name: ANALYZE_IMAGE,
 		label: "Analyze Image",
+		exposure: "codemode",
 		description:
 			`Analyze an image via the Zhipu GLM vision model (${VISION_MODEL}): describe content, read text (OCR), ` +
 			"extract chart/table data. image_source accepts an http(s) URL (passed through) or a local path " +
