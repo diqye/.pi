@@ -49,6 +49,7 @@ const GEN_GUIDELINES = [
 	"Aspect defaults by image type: illustration/general → 16:9, avatar/icon → 1:1, poster/portrait → 9:16. Use the user's choice when given.",
 	"With ref images the prompt becomes an edit/fusion instruction (e.g. '换背景为森林'), not a full re-description; prompt may be omitted when refs are given.",
 	"Default output path: ./out-<short-desc>.png in the session cwd. After generation, tell the user the saved path.",
+	"gpt-image-2 renders long Chinese text reliably: for text-bearing images put the FULL text verbatim into the prompt (never abbreviate), plus font style and layout instructions. Do not OCR-verify or re-check the result afterwards (wastes tokens; the user checks it themselves).",
 ];
 
 export default function imageGenExtension(pi: ExtensionAPI) {
@@ -61,7 +62,10 @@ export default function imageGenExtension(pi: ExtensionAPI) {
 			"Generate or edit images via the global `gpt-image-2` CLI (GPT Image 2). Takes an optimized Chinese prompt " +
 			"(write it yourself from the user's need, do not forward raw user words), optional local/remote reference " +
 			"images for image-to-image editing, and an optional mask for partial repaint. Refs: jpeg/jpg/png/webp, ≤7MB total. " +
-			"Generation takes 1-3 minutes. Returns the CLI output including the saved file path.",
+		"Generation takes 1-3 minutes. Returns the CLI output including the saved file path. " +
+		"gpt-image-2 renders long Chinese text accurately: when the image must contain text (poster, letter, card, 文字图), " +
+		"embed the full text verbatim in the prompt — do not fear long text, do not composite text yourself, do not shorten or split. " +
+		"Specify font style (e.g. 手写体) and layout (spacing, alignment) in the prompt.",
 		promptSnippet: "Generate and edit images via gpt-image-2",
 		promptGuidelines: GEN_GUIDELINES,
 		parameters: Type.Object({

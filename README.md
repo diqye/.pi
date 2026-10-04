@@ -53,6 +53,7 @@ bun install
 | `trim-context.ts` | context 裁剪：`/trim <n>` 轮次截断（落 compaction 检查点，会话文件保留全史，`/tree` 可回看）；`/trim tool <n>` 钉分界线裁剪 tool result（分界前替换为 `[Content removed]` 标记，之后及新增永久原文；状态以 turn=false 消息内嵌 session，重复执行以最后一条为准，加大 n 可放回）；`/trim show` 统计 tokens 占比与节省量 |
 | `schedule-prompt` | cron 定时注入 prompt（exposure=codemode，`/schedule` 查看，进程内存态） |
 | `session-chat` | 同机多 pi 实例互通（UDP 多播组）；`/peers` 上下线/描述/ping，`/msg <pid\|name> <text>` 直发；工具 `session_msg` 活跃随 `/peers` 上下线联动；`PI_SESSION_CHAT=1` 启动自动上线 |
+| `show-system-prompt.ts` | `/system-prompt` 将当前生效的完整 system prompt 写入 `/tmp/pi-system-prompt.md`（附体积） |
 
 ## 技能
 
