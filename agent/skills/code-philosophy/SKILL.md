@@ -23,6 +23,7 @@ description: 如何写代码的工程哲学与规范：架构演进、数据流�
 - Share by **same business domain**, not by same code shape
 - Entry source files serve as a clear logic overview
 - Use the entry file to orchestrate sub-logic; sub-logic modules should not import one another.
+- Sibling reuse goes through **injection**: the parent passes shared functions/interfaces into sub-logic modules, which call the injected code directly — never sideways imports
 - Imports specify where each piece of logic lives
 - This structure is recursive (tree-shaped): when a sub-logic module grows complex, it becomes the entry for its own sub-logic, repeating the same rules at every level
 
