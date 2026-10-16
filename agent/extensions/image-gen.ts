@@ -47,6 +47,7 @@ function fail(text: string): Result<Record<string, never>> {
 const GEN_GUIDELINES = [
 	"First understand the user's request and WRITE a clear, specific Chinese image prompt yourself (subject, composition, style, color, text requirements) — never pass the user's raw words as the prompt.",
 	"Aspect defaults by image type: illustration/general → 16:9, avatar/icon → 1:1, poster/portrait → 9:16. Use the user's choice when given.",
+	"Never raise resolution on your own: always 1K; use 2K/4K only when the user explicitly asks (higher tiers cost much more).",
 	"With ref images the prompt becomes an edit/fusion instruction (e.g. '换背景为森林'), not a full re-description; prompt may be omitted when refs are given.",
 	"Default output path: ./out-<short-desc>.png in the session cwd. After generation, tell the user the saved path.",
 	"gpt-image-2 renders long Chinese text reliably: for text-bearing images put the FULL text verbatim into the prompt (never abbreviate), plus font style and layout instructions. Do not OCR-verify or re-check the result afterwards (wastes tokens; the user checks it themselves).",
@@ -74,7 +75,9 @@ export default function imageGenExtension(pi: ExtensionAPI) {
 			),
 			out: Type.Optional(Type.String({ description: "Output file path, default ./out-<short-desc>.png" })),
 			aspect: Type.Optional(Type.String({ description: `Aspect ratio: ${ASPECTS.join(" ")}` })),
-			resolution: Type.Optional(Type.String({ description: "1K / 2K / 4K, default 1K" })),
+			resolution: Type.Optional(
+				Type.String({ description: "1K / 2K / 4K. Always omit (1K) unless the user explicitly asks for higher — higher tiers cost much more" }),
+			),
 			format: Type.Optional(Type.String({ description: "png / jpeg, default png" })),
 			count: Type.Optional(Type.Integer({ minimum: 1, maximum: 8, description: "Number of images (1-8)" })),
 			ref: Type.Optional(Type.Array(Type.String(), { description: "Local reference image paths" })),
