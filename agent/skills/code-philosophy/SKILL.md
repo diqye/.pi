@@ -1,6 +1,6 @@
 ---
 name: code-philosophy
-description: 如何写代码的工程哲学与规范：架构演进、数据流、复用与模块边界、注释规范。在编写、修改、审查任何代码，或进行架构设计、代码审查、重构时使用。
+description: 如何写代码的工程哲学与规范：架构演进、数据流、数据建模、复用与模块边界、注释规范。在编写、修改、审查任何代码，或进行架构设计、代码审查、重构时使用。
 ---
 
 # Code Philosophy
@@ -15,6 +15,12 @@ description: 如何写代码的工程哲学与规范：架构演进、数据流�
 ## Data Flow
 
 - **Simple and direct, no event bus**: a single callback solves communication. No EventEmitter, no listener arrays. Pass only what's needed — a hook is just a function
+
+## Data Modeling
+
+- **Distinct business cases get distinct types — one entry per case**: model the variants of a domain as a union where each scenario is a self-sufficient variant with its own discriminant entry. Field types are reusable across variants, but the **entries are not**: never collapse scenarios into one loose shape with optional fields or implicit defaults — that hides business semantics in field-combination matrices and forces every consumer to guess
+- Exhaustiveness at consumption: every consumer branches on the discriminant, so adding a variant without updating all consumers is a compile/test error, not a runtime surprise
+- **External data validates once at the boundary; internal data trusts its type**: data crossing a system boundary (files, API, LLM output) is parsed/validated exactly once, and the validation result becomes the single source of truth for its shape. After the boundary, plain type definitions — no runtime re-validation, no defensive fallbacks
 
 ## Reuse
 

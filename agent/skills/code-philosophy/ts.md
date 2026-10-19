@@ -17,7 +17,7 @@
 1. Use early returns for readable control flow
 2. Never use switch-case
 3. Leverage the type system for compile-time checks: `satisfies T[]` for inline literal validation, `x satisfies never` for exhaustiveness — zero runtime overhead
-4. Validate external data with zod
+4. External data (files, API, LLM output) crosses zod once at the boundary (see SKILL.md "Data Modeling"; `z.discriminatedUnion` + `z.infer` keeps schema and type one declaration); internal data is plain `type` definitions — no runtime re-validation, no defensive `?? fallback` downstream of the boundary
 5. **Type-driven, define once consume everywhere**: define a Zod schema once, export the TS type derived from the schema. Never duplicate interface and schema — eliminate definition drift
 6. **Strictly validate external input**: external data (HTTP body, file content, IPC messages) must be parsed before use. Never trust raw JSON. Schema failure should fail fast
 7. **Prefer `type` over `interface`**: use type aliases (`type Foo = { ... }`) by default; interface only when declaration merging or extending an external interface is genuinely needed
