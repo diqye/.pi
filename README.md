@@ -25,8 +25,8 @@ bun install
 │   ├── AGENTS.md         # 全局指令（运行时、系统工具、交流风格）
 │   ├── settings.json     # 主题、默认模型、thinking level、packages
 │   ├── keybindings.json  # 快捷键
-│   ├── auth.json         # 凭证（gitignore，从 auth.json.example 复制）
-│   ├── models.json       # 模型列表（gitignore，从 models.json.example 复制）
+│   ├── auth.json         # 凭据：zai-coding-cn / minimax-cn，key 为 $VAR 引用，随仓库提交
+│   ├── models.json       # 模型列表：自定义 provider（ark/ksyun/zmexing），apiKey 全为 $VAR 引用，随仓库提交
 │   ├── mcp.json          # 内置 MCP server 配置（pi 1.0 原生支持，无敏感信息，随仓库提交）
 │   ├── extensions/       # 自定义扩展
 │   ├── prompts/          # 提示词模板
@@ -48,7 +48,7 @@ bun install
 | `piko.ts` | piko 集成 |
 | `privacy-guard.ts` | 隐私防护 |
 | `tools.ts` | `/tools` 工具开关面板：session_start 保留默认 builtin，其余全关手动开（PI_TOOLS_ON 白名单） |
-| `zhipu-tools.ts` | 智谱 REST 工具：`web_search`（search_pro 实时搜索）、`analyze_image`（GLM 视觉识图/OCR），凭证热生效；exposure=codemode（注册即始终可调，不占上下文，无需 /tools 开） |
+| `zhipu-tools.ts` | 智谱 REST 工具：`web_search`（search_pro 实时搜索）、`analyze_image`（GLM 视觉识图/OCR），凭证读 `ZHIPU_API_KEY` 环境变量；exposure=codemode（注册即始终可调，不占上下文，无需 /tools 开） |
 | `image-gen.ts` | `gpt-image-2` CLI 封装：`generate_image`（生成/编辑，含 ref/mask）、`image_mask`（本地蒙版）；exposure=deferred（tool_search 按需声明后直接调） |
 | `trim-context.ts` | context 裁剪：`/trim <n>` 轮次截断（落 compaction 检查点，会话文件保留全史，`/tree` 可回看）；`/trim tool <n>` 钉分界线裁剪 tool result（分界前替换为 `[Content removed]` 标记，之后及新增永久原文；状态以 turn=false 消息内嵌 session，重复执行以最后一条为准，加大 n 可放回）；`/trim show` 统计 tokens 占比与节省量 |
 | `schedule-prompt` | cron 定时注入 prompt（exposure=codemode，`/schedule` 查看，进程内存态） |
@@ -70,9 +70,19 @@ bun install
 
 `agent/prompts/` 下通过 `/prompts` 调用：`feishu-publish`。
 
-## 敏感配置
+## 环境变量（凭证）
 
-`auth.json` / `models.json` 已 gitignore，换机器时从对应 `*.example` 复制并填入真实 key。`mcp.json` 无敏感信息，随仓库提交。
+仓库内不含任何明文 key：`models.json` / `auth.json` 全部为 `$VAR` 引用，换机器只需在 shell 配置（如 `~/.zshrc`）导出：
+
+| 变量 | 用途 |
+|---|---|
+| `ARK_API_KEY` | 火山方舟 ark（doubao-seed-evolving） |
+| `KSYUN_API_KEY` | ksyun（Anthropic 网关，headers 同源） |
+| `ZMEXING_API_KEY` / `ZMEXING_WSF_API_KEY` | zmexing 两套网关 |
+| `ZHIPU_API_KEY` | 智谱开放平台：zai-coding-cn provider + web_search / analyze_image 工具 |
+| `MINIMAX_API_KEY` | minimax-cn provider |
+
+环境变量改动需重启 pi 生效；models.json 改动会话内重开 `/model` 即重载。
 
 ## 维护
 

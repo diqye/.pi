@@ -5,16 +5,14 @@
  * - web_search：智谱 Web Search API（search_pro），补实时信息
  * - analyze_image：智谱 GLM 视觉模型，补识图 / OCR / 图表读取
  *
- * - 凭证热生效：每次调用现读 ~/.pi/agent/auth.json（zhipu 条目，缺省回退
- *   zai-coding-cn——同一开放平台、同格式 key），改完无需重启
+ * - 凭证：环境变量 ZHIPU_API_KEY（auth.json 的 zai-coding-cn 条目引用同一变量）
  * - codemode exposure：注册即始终可调（codemode 脚本），不进活跃集，无需 /tools 开启
  * - 所有失败（缺凭证 / 网络 / 超时 / 文件不存在 / 超大）返回结构化错误文本
  *   而非抛异常，LLM 理解原因后自行决定：换参数重试 / 转告用户 / 放弃
  */
 
 import { readFileSync, statSync } from "node:fs";
-import { homedir } from "node:os";
-import { extname, isAbsolute, join, resolve } from "node:path";
+import { extname, isAbsolute, resolve } from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { z } from "zod";
@@ -29,27 +27,10 @@ const VISION_SYSTEM_PROMPT =
 const WEB_SEARCH = "web_search";
 const ANALYZE_IMAGE = "analyze_image";
 
-// ---------- 凭证（热生效） ----------
-
-// auth.json 中可用的条目名：zhipu 优先；zai-coding-cn 是同一平台的历史条目名
-const AUTH_KEYS = ["zhipu", "zai-coding-cn"] as const;
-
-function zhipuApiKey(): string | undefined {
-	try {
-		const raw = readFileSync(join(homedir(), ".pi", "agent", "auth.json"), "utf8");
-		const auth = JSON.parse(raw) as Record<string, { type?: string; key?: string }>;
-		for (const name of AUTH_KEYS) {
-			const key = auth[name]?.key;
-			if (key) return key;
-		}
-	} catch {
-		// 缺文件 / 坏 JSON 统一走“未配置”分支
-	}
-	return undefined;
-}
+// ---------- 凭证 ----------
 
 const NO_KEY_HINT =
-	'ERROR: Zhipu API key not configured. Add {"zhipu":{"type":"api_key","key":"..."}} to ~/.pi/agent/auth.json, then retry.';
+	"ERROR: ZHIPU_API_KEY not set. Export it in your shell profile, then restart pi and retry.";
 
 // ---------- HTTP ----------
 
@@ -165,7 +146,7 @@ export default function zhipuToolsExtension(pi: ExtensionAPI) {
 			),
 		}),
 		async execute(_toolCallId, params) {
-			const key = zhipuApiKey();
+			const key = process.env.ZHIPU_API_KEY;
 			if (!key) return fail(NO_KEY_HINT);
 
 			const r = await zhipuPost(
@@ -215,7 +196,7 @@ export default function zhipuToolsExtension(pi: ExtensionAPI) {
 			prompt: Type.String({ description: "What to analyze in the image" }),
 		}),
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-			const key = zhipuApiKey();
+			const key = process.env.ZHIPU_API_KEY;
 			if (!key) return fail(NO_KEY_HINT);
 
 			const img = toImageUrl(params.image_source, ctx.cwd);

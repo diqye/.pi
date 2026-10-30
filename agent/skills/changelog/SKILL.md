@@ -45,7 +45,8 @@ description: 维护 CHANGELOG.md 与发布流程。在用户要求写 changelog�
 
 ### 版本号规则
 
-- 格式 `vX.Y.Z`(semver);0.x 阶段默认 **minor +1**(每次发布基本都含新功能)
+- 格式 `vX.Y.Z`(semver)
+- **0.x 阶段:本次冻结段确有主体新功能(含 New Features 条目或用户可感知的新能力)才 minor +1;仅修复/变更/打包配置等 patch +1**。不要机械 minor+1——版本号反映的是用户拿到的功能增量,不是发布次数
 - 用户明确指定版本号时用指定的;含 Breaking Changes 且用户要求大版本时 major +1
 - 下一版本 = CHANGELOG 中现有最大版本号推算;全新项目首个版本 v0.1.0
 - 项目已有自己的版本规则时沿用其规则

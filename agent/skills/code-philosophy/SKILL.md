@@ -14,7 +14,8 @@ description: 如何写代码的工程哲学与规范：架构演进、数据流�
 
 ## Data Flow
 
-- **Simple and direct, no event bus**: a single callback solves communication. No EventEmitter, no listener arrays. Pass only what's needed — a hook is just a function
+- **Simple and direct, no implicit wiring**: a single callback solves communication. No EventEmitter, no listener arrays. Pass only what's needed — a hook is just a function
+- When callback injection cannot reach (deep fire-and-forget, timer callbacks that no parameter can thread through), a **named single slot** is allowed: strongly-typed signature, one event, one consumer, wired explicitly at the orchestration layer (e.g., `registerAnnouncer(impl)` as a visible assembly line). The enemy is implicit connections, not the subscription form itself
 
 ## Data Modeling
 
@@ -27,11 +28,13 @@ description: 如何写代码的工程哲学与规范：架构演进、数据流�
 - Reuse code with tool value: abstract, single-responsibility utilities (e.g., `map`) - this is what belongs in shared/common functions
 - **Prefer runtime built-ins before adding dependencies**: check Bun/Node/browser/Web-standard APIs first (e.g., `Bun.YAML.parse` vs the `yaml` package, `node:fs` renameSync vs a library). Verify on the actual runtime version — stale memory about what's "built-in" causes needless dependencies
 - Share by **same business domain**, not by same code shape
-- Entry source files serve as a clear logic overview
-- Use the entry file to orchestrate sub-logic; sub-logic modules should not import one another.
+- Entry source files serve as a clear logic overview. The orchestration layer's concrete duties: ① assembly — wiring injections and named slots (the one place where connections are visible); ② cross-module state composition (aggregating reads from domain modules); ③ cross-module flows (e.g., deletion = stop sessions → stop timers → delete data); ④ announcements. It is the only layer that knows all its children
+- **Modules form a layered tree; sideways and upward imports are violations**: orchestration → session/domain → data → common leaves. Upper depending on lower is legal; a sibling depending on a sibling is not — one-way or not. The acceptance test: **deleting any module requires editing only its parent; horizontal peers are unaware**. Distinguish two cases when tempted to import sideways: shared capability (belongs in the common layer — sink it down) vs lower reaching upper (dependency inversion — inject a callback or register a named slot)
+- Common leaves come in two tiers: **const** (constants/types/schemas, zero side effects, shareable across front/back) and **kit** (function values allowed to probe, dependency-inversion slots; imports no siblings, bottom of the tree)
 - Sibling reuse goes through **injection**: the parent passes shared functions/interfaces into sub-logic modules, which call the injected code directly — never sideways imports
 - Imports specify where each piece of logic lives
 - This structure is recursive (tree-shaped): when a sub-logic module grows complex, it becomes the entry for its own sub-logic, repeating the same rules at every level
+- An architecture rule that cannot be asserted will rot: encode the tree as a check script (e.g., `check-deps`) and run it after every restructuring
 
 ## Comments
 

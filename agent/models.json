@@ -1,0 +1,202 @@
+{
+	"providers": {
+		"ark": {
+			"baseUrl": "https://ark.cn-beijing.volces.com/api/v3",
+			"api": "openai-completions",
+			"apiKey": "$ARK_API_KEY",
+			"models": [
+				{
+					"id": "doubao-seed-evolving",
+					"name": "Doubao Seed Evolving",
+					"reasoning": true,
+					"input": ["text", "image"],
+					"contextWindow": 1048576,
+					"maxTokens": 262144,
+					"thinkingLevelMap": {
+						"off": "none",
+						"minimal": "minimal",
+						"low": "low",
+						"medium": "medium",
+						"high": "high",
+						"xhigh": "xhigh",
+						"max": "max"
+					},
+					"compat": {
+						"maxTokensField": "max_tokens",
+						"supportsDeveloperRole": false,
+						"supportsReasoningEffort": true
+					}
+				}
+			]
+		},
+		"ksyun": {
+			"baseUrl": "https://kspmas.ksyun.com/",
+			"api": "anthropic-messages",
+			"apiKey": "$KSYUN_API_KEY",
+			"headers": {
+				"x-api-key": "$KSYUN_API_KEY"
+			},
+			"models": [
+				{
+					"id": "kimi-k3",
+					"reasoning": true,
+					"input": ["text", "image"],
+					"contextWindow": 1000000,
+					"thinkingLevelMap": {
+						"off": null,
+						"minimal": "minimal",
+						"low": "low",
+						"medium": "medium",
+						"high": "high",
+						"xhigh": "xhigh",
+						"max": "max"
+					}
+				},
+				{
+					"id": "mco-4",
+					"name": "Claude Opus 4.6",
+					"reasoning": true,
+					"input": ["text", "image"],
+					"contextWindow": 1000000,
+					"thinkingLevelMap": {
+						"off": null,
+						"minimal": "minimal",
+						"low": "low",
+						"medium": "medium",
+						"high": "high",
+						"xhigh": "xhigh",
+						"max": "max"
+					}
+				},
+				{
+					"id": "mcs-5",
+					"name": "Claude Sonnet 4.6",
+					"reasoning": true,
+					"input": ["text", "image"],
+					"contextWindow": 200000,
+					"thinkingLevelMap": {
+						"off": null,
+						"minimal": "minimal",
+						"low": "low",
+						"medium": "medium",
+						"high": "high",
+						"xhigh": "xhigh",
+						"max": "max"
+					}
+				},
+				{
+					"id": "mch-1",
+					"name": "Claude Haiku 4.5",
+					"reasoning": true,
+					"input": ["text", "image"],
+					"contextWindow": 200000,
+					"thinkingLevelMap": {
+						"off": null,
+						"minimal": "minimal",
+						"low": "low",
+						"medium": "medium",
+						"high": "high",
+						"xhigh": "xhigh",
+						"max": "max"
+					}
+				},
+				{
+					"id": "mcf-1",
+					"name": "Claude Fable 5",
+					"reasoning": true,
+					"input": ["text", "image"],
+					"contextWindow": 200000,
+					"thinkingLevelMap": {
+						"off": null,
+						"minimal": "minimal",
+						"low": "low",
+						"medium": "medium",
+						"high": "high",
+						"xhigh": "xhigh",
+						"max": "max"
+					}
+				}
+			]
+		},
+		"zmexing": {
+			"baseUrl": "https://devops-ai-gw.zmexing.com",
+			"api": "openai-completions",
+			"apiKey": "$ZMEXING_API_KEY",
+			"models": [
+			{
+				"id": "glm-5.3",
+				"name": "GLM 5.3",
+				"reasoning": true,
+				"contextWindow": 1048576,
+				"thinkingLevelMap": {
+					"off": null,
+					"minimal": null,
+					"low": "low",
+					"medium": "medium",
+					"high": "high",
+					"xhigh": null,
+					"max": null
+				}
+			},
+			{
+				"id": "gpt-6-sol",
+				"name": "gpt-6-sol",
+				"api": "azure-openai-responses",
+				"reasoning": true,
+				"input": ["text", "image"],
+				"contextWindow": 1050000,
+				"maxTokens": 128000,
+				"thinkingLevelMap": {
+					"off": "none",
+					"minimal": null,
+					"low": "low",
+					"medium": "medium",
+					"high": "high",
+					"xhigh": "xhigh",
+					"max": "max"
+				}
+			}
+			]
+		},
+		"zmexing-wsf": {
+			"baseUrl": "https://devops-ai-gw.zmexing.com",
+			"api": "openai-completions",
+			"apiKey": "$ZMEXING_WSF_API_KEY",
+			"models": [
+			{
+				"id": "glm-5.3",
+				"name": "GLM 5.3",
+				"reasoning": true,
+				"contextWindow": 1048576,
+				"thinkingLevelMap": {
+					"off": null,
+					"minimal": null,
+					"low": "low",
+					"medium": "medium",
+					"high": "high",
+					"xhigh": null,
+					"max": null
+				}
+			},
+			{
+				"id": "gpt-6-sol",
+				"name": "gpt-6-sol",
+				"api": "azure-openai-responses",
+				"reasoning": true,
+				"input": ["text", "image"],
+				"contextWindow": 1050000,
+				"maxTokens": 128000,
+				"thinkingLevelMap": {
+					"off": "none",
+					"minimal": null,
+					"low": "low",
+					"medium": "medium",
+					"high": "high",
+					"xhigh": "xhigh",
+					"max": "max"
+				}
+			}
+			]
+		}
+	}
+}

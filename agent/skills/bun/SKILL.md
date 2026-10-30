@@ -49,3 +49,19 @@ description: Bun 运行时规范与问题排查。跑脚本/服务、包管理�
 
 - 服务端口占用报错先 `ps aux | grep src/index.ts` 确认旧进程
 - 内存态(token、缓存)重启即清,属预期行为,不算 bug
+
+## 构建已知问题
+
+### 未修:Bun.build splitting + publicPath 污染服务端运行时 import
+
+`splitting: true` + `publicPath` 会给**所有** chunk 引用加前缀,包括 target:"bun" 服务端入口 bundle 里的运行时 import。文档定义 publicPath 就是加在全部导入路径上,不区分浏览器/服务端语义 → 按文档算 by design;1.3.14 实测未修,1.4.x release notes 也无相关修复。
+
+- `publicPath="/"` → 产物含 `import("/chunk-x.js")`,运行时按文件系统解析绝对路径 → 启动即崩
+- `publicPath="https://cdn…/"` → 产物含 `import("https://…/chunk-x.js")`,Bun 支持 https import 不会崩,但服务端冷启动去网络拉自己的代码(CDN 挂 = 服务挂,极隐蔽)
+
+行为细节(1.3.14 实测):
+
+- **chunk 引用 chunk 是常态**:共享依赖抽成公共 chunk 后,引用方(含动态 import 产物,字面量 `import("/chunk-x.js")`)直接引它,同样带前缀
+- 服务端可达闭包(入口 → chunk → chunk)里任何一处带前缀引用都会出事;好在产物里 chunk 引用全是明文字符串,文本扫描可完整枚举
+
+目前仅 dogdog.work 有项目级缓解(2026-10:build 后把 dist/index.js 里 `"/chunk-` 文本替换回 `"./`),成立前提是服务端可达 chunk 无内部引用——恰好成立,非结构保证;CDN 形态该替换匹配不到。通用方案未定,勿照抄。
