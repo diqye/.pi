@@ -1,87 +1,111 @@
 ---
 name: bun-fullstack
-description: Bun 单进程全栈项目规范(gpress + wouter + lucide-react + tailwind + 内嵌 pi agent)与构建部署模式。新建全栈项目、接 gpress、嵌入 pi、写 build/deploy 脚本时使用,基于 lime 项目沉淀。
+description: Bun 单进程全栈项目(gpress + wouter + lucide-react + tailwind + zod)。新建全栈项目、接 gpress、写 build/dev 脚本、排查 tailwind/splitting/publicPath/BASE_PATH 问题时使用。以 example/ 完整可跑项目为模板。
 ---
 
-# Bun 全栈项目规范(lime 模式)
+# Bun 全栈项目(模板驱动)
 
-单进程全栈:server 与前端同仓同进程,Bun 原生 HTML import,无 vite/独立前端 dev server。
-
-## 目录骨架
+**核心方法：先看 example/，再读本文件的踩坑结论。** example/ 是一个完整可跑的最小实现(三页面 + API + code split + BASE_PATH 挂载)，本文件只讲"为什么"——规范没有例子会腐烂，例子没有结论会看不懂。
 
 ```
-src/
-  index.ts          # 入口:serve() 路由表(WS 升级 / "/api/*" / "/*" SPA fallback)
-  index.html        # 前端壳:<script type="module" src="./web/frontend.tsx">
-  server/           # 后端:handler 纯函数 + 组合树;config/data 内存态 + 落盘
-  web/              # 前端:frontend.tsx 入口、App.tsx 路由、components/ hooks/ lib/
-  lib/gpress/       # vendored:gpress 仓库原样拷贝,保持纯上游
-  lib/zodParse.ts   # zod 校验组合子(上游为零依赖移除了 zodParse)
-build.ts            # 产出 dist/(minified bundle + 外置依赖 package.json)
-scripts/deploy.ts   # 一键部署(仅用户手工执行)
+example/
+  bunfig.toml        # dev server 的 tailwind 插件 + env 注入声明
+  build.ts           # 单次 Bun.build + html 资产前缀改写
+  tsconfig.json
+  package.json       # dev / build / start / typecheck
+  .env               # APP_BASE_PATH=/app
+  src/
+    index.ts         # Bun.serve 路由表(3 条,全站入口)
+    index.html       # 前端壳,<script src="./web/frontend.tsx">
+    const.ts         # 前后端共享:zod schema + BASE_PATH(唯一读取点)
+    server/api.ts    # gpress handler 纯函数 + 组合树
+    server/const.ts  # 仅服务端常量(PORT)
+    lib/zodParse.ts  # gpress 零依赖,校验组合子自持
+    web/frontend.tsx # createRoot 入口(--hot 防重复挂载)
+    web/App.tsx      # wouter Router base + lazy code split
+    web/lib.ts       # fetch 封装(边界 safeParse + 错误识别)
+    web/pages/       # 页面(每个一个 lazy chunk)
 ```
 
-## 三个 const.ts 的分工(归属判据:谁引用谁持有)
+## 快速开始
 
-- `src/const.ts`:前后端共享的类型与常量(API 协议层:实体 State、权限位、工具 id 等);改协议两端同步看
-- `src/server/const.ts`:仅后端引用的常量与 zod schema(CONFIG_ROOT、安全等级全集、请求 schema)
-- `src/web/const.ts`:仅前端引用的常量与类型(localStorage 键、UI 展示定义/图标 key)
-- 请求 body 的 zod schema 放 server/const,但**改字段必须同步对应 schema**,否则 zod 静默剥掉未知字段,下游永远 undefined(无报错极难排查)
+```
+cp -R <skill目录>/example/ <新项目>/
+bun install && bun run dev     # http://localhost:3000/app
+bun run build && bun run start # 生产
+```
 
-## 依赖选型
+## 架构一句话
 
-react 19 + react-dom / **wouter 3**(SPA 路由)/ **lucide-react**(图标,按需 import)/ tailwindcss 4 + bun-plugin-tailwind / zod 4 / @earendil-works/pi-coding-agent + @earendil-works/pi-ai(内嵌 agent)。
-注意包名是 lucide-react 与 wouter,没有 react-lucide / wroute。
+单进程 `Bun.serve`，`import html from "./index.html"` 让 Bun 原生接管前端打包(dev 自动重写为 `/_bun/*`，无需 vite)；`/api/*` 走 gpress；其余路径返回 html 壳，页面路由交给浏览器端 wouter。
 
-## gpress 接入
+## 踩坑结论(全部实证过，按主题)
 
-- vendored 拷贝 gpress 仓库 `src/Gpress.ts` → `src/lib/gpress/`,**零本地改动**;上游更新 = 直接覆盖拷贝
-- body 校验:`G.requestJson().bind(zodParse(Schema))`;失败 throw G.error,runWith404 统一转 400 JSON
-- 业务错误直接 `throw G.error({ httpcode, code, message })`,任意深度的普通函数都能抛;未捕获异常 runWith404 兜底 500,handler 不写 try/catch
-- 组合树分层:handler 纯函数(body/url 自取);路由 + method 集中组合树一处,就近注释
-- 路由通配 / 前缀:`G.path("/api")` 嵌 `G.path("/pub")` 即 `/api/pub/*`
-- **WS 鉴权分层**(详见 vendored README「WebSocket 复用鉴权」):`authInfoOf`(token→鉴权信息)是领域核心纯函数;`authed` guard 是它的 HTTP 适配层;WS 升级不走路由,首帧直连核心(不造 Request、不解析 Response)。两道防护必备:open 起 10s 计时器,未完成首帧认证则断开(防裸连堆积);认证前只认 auth 帧,业务帧一律丢弃。只有要复用一整串不可拆的 guard 组合(限流+鉴权+租户)才造 Request 跑 `guard.runWith404(req)`
+### tailwind v4
+- dev：`bunfig.toml` 里 `[serve.static] plugins = ["bun-plugin-tailwind"]`。**preload 无效**(插件默认导出是 BunPlugin 对象，preload 只 import 不注册，且 dev server 打包不吃 runtime preload)
+- build：`Bun.build` 的 `plugins: [tailwind]`。两个注册点独立，缺一个就有一端无样式
+- 不需要 `@source`：自动扫描覆盖 tsx。若 CSS 产物里 `@theme` 是原文未展开、无 utilities，说明编译没跑，先查注册点
 
-## 前端
+### code split
+- `splitting: true` 必须显式，默认不拆动态 import
 
-- wouter:`Route/Switch`;通配路由用 `*rest` 语法(`:rest*` 是 regexparam 旧写法,只匹配单段,子目录全 404)
-- tailwind v4:`index.css` 首行 `@import "tailwindcss"`,无 tailwind.config
-- `--hot` 下 createRoot 挂 `import.meta.hot.data`( `(import.meta.hot.data.root ??= createRoot(elem)).render(app)`)防重复挂载
-- fetch 封装统一识别 `!res.ok || body.error != null || body.code != null`,别只看状态码(gpress 错误体带 code/message)
+### publicPath(最深的坑)
+- **锁死 `"./"`**。服务端入口 import html 会把前端图拉进服务端 bundle，共享 chunk(zod 等)的 import 标识符按 publicPath 生成；`"/"` 或 `"/app/"` 会变成 `import{F}from"/app/chunk-x.js"`——运行时当文件系统绝对路径，**启动即崩**，cwd 都救不了
+- 浏览器侧需求相反：html 内嵌引用须是绝对路径(`"./chunk"` 在深层路由 `/app/about` 下解析成 `/app/about/chunk-x` → 404)
+- 解法：`publicPath: "./"` + **构建后改写** index.html 的 `"./chunk` → `` `${BASE_PATH}/chunk ``。chunk 之间的 import 是模块相对，不受影响
+- **上 CDN = 换改写目标**(`https://cdn.x.com${BASE_PATH}/chunk`)，改写规则是唯一开关
 
-## 内嵌 pi agent
+### cwd 约束
+- HTMLBundle 资产清单(`{"files":[{"path":"./chunk..."}]}`)按 **cwd** 解析(注意：与静态 import 的模块相对解析是两套机制)，所以 start 必须是 `cd dist && bun index.js`
 
-- `createAgentSession({...})` + `SessionManager.open(sessionFile, undefined, cwd)`;会话 jsonl 持久化于 `~/.config/<app>/session/<key>.jsonl`,存在则续聊
-- 工具开关走 `setActiveToolsByName` 即时生效,不靠会话重建;自定义工具写 ToolDefinition
-- **build 必须 external** `@earendil-works/pi-coding-agent` 与 `pi-ai`(运行时动态加载多:技能扫描/provider/模板,打进 bundle 风险大);版本从根 package.json 读出写进 `dist/package.json`,目标机 `bun install --production` 后运行
+### BASE_PATH(反向代理挂在子路径)
+- 单一读取点 `src/const.ts`：`process.env.APP_BASE_PATH ?? "/app"`
+- 浏览器没有 process.env，注入靠 APP_ 前缀机制：dev 用 `bunfig env = "APP_*"`，build 用 `Bun.build env: "APP_*"`——**前缀声明在两处，改要同步**
+- 服务端路由表三条(dev/生产同形态，nginx 剥或不剥前缀都能路由)：
+  ```ts
+  routes: {
+    "/api/*": (req: Request) => apiTree.runWith404(req),
+    [BASE_PATH + "/*"]: (req: Request) => { /* 剥前缀后 fetch 重入 */ },
+    "/*": html,
+  }
+  ```
+- **routes 优先于 fetch**：`/*` 会吞掉所有路径，前缀改写放 fetch 里永远执行不到
+- HTMLBundle **只能经 routes 服务**，`new Response(html)` 得到 `[object HTMLBundle]`
+- nginx：`location /app/ { proxy_pass http://127.0.0.1:3000/; }`(结尾斜杠 = 剥前缀)
 
-## 构建 build.ts
+### 版本分裂
+- `bun run <script>` 里嵌套的 `bun` 解析到 `node_modules/bun`(peer 自动安装)，可能与全局 bun 版本不一致；build 打印 `Bun.version` 便于发现
 
-- `Bun.build({ entrypoints:["./src/index.ts"], target:"bun", minify:true, sourcemap:"none", plugins:[tailwind], external:[pi 两个], define:{ "process.env.NODE_ENV": JSON.stringify("production") } })`
-- **publicPath 必须 "/"**:SPA 深层路由下相对路径资产被解析进路由路径,SPA fallback 返 HTML 报 MIME 错(实踩)
-- 运行时读盘的资源(pre-skills/、CHANGELOG.md 等)`cp` 进 dist,目标机从 dist 起 cwd 优先解析
-- 产物只有 `index.js + package.json + 静态资源`,不带源码;sourcemap "none"(linked 模式的 .map 即原始源码)
+### import.meta.hot
+- `.data` 只能**直接成员访问**，经变量中转报 "cannot be used indirectly"；TS 侧用 `import.meta.hot!` 断言
 
-## 部署 scripts/deploy.ts(仅用户手工执行,AI 只改脚本不运行)
+### gpress
+- 组合子形态：`G.path("/api").semiBind(G.alts(G.ePath("/x").get().requestUrl().bind(fn).map(d => Response.json(d)), ...))`——`get()/post()` 无参，业务全在 bind
+- `runWith404(req)` 恒返回 Response(HttpError→{code,message}+httpcode，其余 500，continue→404)，调用方不用判空
+- 校验组合子自持：`zodParse`(body)/`zodQuery`(searchParams)在 `src/lib/zodParse.ts`，几行的事
+- 注意包名：`@diqye/gpress`(npm 裸名 `gpress` 是占位包)
 
-模式:本地 build → rsync dist → 远端 bun install → pm2。两个 ssh 坑(勿回退):
+### zod schema 约定(前后端协议层)
+- 单一定义点 `src/const.ts`，类型全部推导，**禁止手写平行 interface**
+- 数据流向：请求 = 前端构造 `z.input` → 后端 parse 后拿 `z.output`；响应 = 服务端构造 → 前端边界 `safeParse` 后拿 `z.output`
+- 响应 schema 必须无 transform/default(`z.input === z.output`)两端才能共用 `z.infer`；请求 schema 的 `.default()/.trim()` 正是 input/output 差异点(input 侧可缺省，output 侧必有且已 trim)
+- 前端引 schema 值(响应要 parse)，zod 运行时进前端 chunk 是预期成本；请求类型用 `import type` 拿 `z.input` 不带运行时
+- 请求 body schema 放共享层后记得两端同步，否则 zod 静默剥掉未知字段，下游 undefined 无报错
 
-1. 不套 `ssh host bash -lc "..."` —— 引号经远端重新分词会丢,命令只剩第一个词且检测永远 exit 0;整条命令作为单参数过 `Bun.$`ssh host ${cmd}``,由远端 shell 自己分词
-2. 远端 profile 常无 `~/.bun/bin`,每条命令前置 `export PATH="$HOME/.bun/bin:$PATH"`
+### fetch 封装
+- 统一识别 `!res.ok || body.error != null || body.code != null`，gpress 错误体带 code/message，不能只看状态码
 
-- rsync:`-az --delete --exclude=node_modules dist/ host:dir/`(node_modules 远端生成,被 --delete 会每次全量重装)
-- pm2 存在性判断用 `pm2 jlist | grep -q '"name":"xxx"'`(`pm2 pid` 对不存在的名字也 exit 0)
-- restart 失败("Process N not found",元数据在、运行表无)→ `pm2 delete` + `start` 重建
-- `pm2 start <bun绝对路径> --name x --max-memory-restart 4G -- run index.js`(绝对路径落库,restart 不依赖 daemon PATH);收尾 `pm2 save`
-- **运行时数据(`~/.config/<app>/`)不经部署链路**,更新部署不影响配置与会话
+## 反面案例(别重蹈)
 
-## 配置与数据落盘
+- **双 build 方案**(前端 html 入口独立 build + 服务端去 html import + 自写静态服务)：publicPath 确实只作用前端，但 dev/prod 双代码路径、动态 import 命名空间坑、自写静态服务，复杂度全部转移到运行期。被否——单 build 的 replaceAll hack 集中在 build.ts 一处，更清爽
+- `publicPath: "/"` 或 `` `${BASE_PATH}/` ``：启动即崩(见上)
+- `external: ["./index.html"]`：拦不住 bundler 跟进动态 import
+- 手写 interface 复制 zod 类型：两份独立编译，静默漂移
 
-- 配置根唯一落点:`src/server/const.ts` 的 `CONFIG_ROOT = ~/.config/<app>`,禁止各处写死
-- 启动读一次进内存,写操作改内存 + persist 落盘,经 `withFileLock` 单进程串行化
-- 直接手改配置文件会被运行中进程的下次落盘覆盖;手改后必须重启(先停再改更稳)
+## example 未覆盖、来自 lime 的补充
 
-## Dev 工作流
-
-- `bun --hot src/index.ts` 起服务;**--hot 有状态分裂坑**(内存单例/config 单例读到旧实例,代码明明改了行为不变),先重启再排查
-- 类型检查 `bunx tsc --noEmit`;改 server 代码由用户自己重启验证
+- **内嵌 pi agent**：`createAgentSession` + `SessionManager.open`；build 必须 external `@earendil-works/pi-coding-agent` 与 `pi-ai`，版本写进 dist/package.json，目标机 `bun install --production`
+- **部署**(scripts/deploy.ts，仅用户手工执行)：本地 build → rsync `-az --delete --exclude=node_modules dist/ host:dir/` → 远端 pm2。ssh 命令整条作为单参数过 `Bun.$`，远端每条命令前置 `export PATH="$HOME/.bun/bin:$PATH"`；pm2 存在性用 `pm2 jlist | grep -q '"name":"xxx"'`
+- **WS 鉴权**：见包内 README「WebSocket 复用鉴权」，authInfoOf 纯函数为核心，open 起 10s 未认证断开
+- **配置落盘**：配置根唯一落点 server/const 的 `CONFIG_ROOT`，启动读一次进内存，写操作改内存+落盘
+- **--hot 状态分裂坑**：改了 server 代码行为不变时，先整个重启再排查
