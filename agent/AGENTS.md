@@ -1,11 +1,11 @@
 # 全局指令
 
 ## 运行时
-- 优先 Bun runtime,不用 node/npm/npx/ts-node(细节见 bun skill)
-- 优先Bun 写脚本。
+- 优先 Bun runtime,不用 node/npm/npx/ts-node
 
 ## 系统工具
 - 用户要求复制/读剪贴板时，用系统命令 `pbpaste`（读）、`echo 内容 | pbcopy`（写）
+- 给出需要用户手动执行的命令时（如需 sudo/交互输入我这边跑不了的），写完立即自动 `echo '命令' | pbcopy` 复制到剪贴板并告知已复制，不要等用户说 copy
 - 仅在直连失败时才加代理环境变量（避免走代理拖慢速度）：`export https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890 all_proxy=socks5://127.0.0.1:7890`
 - 生图/改图用 `generate_image`（deferred，先 tool_search 加载）
 
