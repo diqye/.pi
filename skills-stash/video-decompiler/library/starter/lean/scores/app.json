@@ -1,0 +1,87 @@
+{
+ "kind": "app",
+ "fps": 30,
+ "width": 1920,
+ "height": 1080,
+ "duration": 9.0,
+ "voice": null,
+ "beats": [
+  {
+   "id": "open",
+   "from": 0.0,
+   "to": 1.6,
+   "shot": "wide",
+   "words": "A full week.",
+   "job": "open"
+  },
+  {
+   "id": "press",
+   "from": 1.6,
+   "to": 2.8,
+   "shot": "medium",
+   "words": "Pick it up.",
+   "job": "open"
+  },
+  {
+   "id": "drag",
+   "from": 2.8,
+   "to": 4.0,
+   "shot": "medium",
+   "words": "Drop it in.",
+   "job": "open"
+  },
+  {
+   "id": "zoom",
+   "from": 4.0,
+   "to": 6.6,
+   "shot": "close",
+   "words": "The week makes room for it.",
+   "job": "statement"
+  },
+  {
+   "id": "close",
+   "from": 6.6,
+   "to": 9.0,
+   "shot": "wide",
+   "words": "Your app. Out now.",
+   "job": "statement"
+  }
+ ],
+ "words": [],
+ "sounds": [
+  {
+   "at": 2.5,
+   "make": "tick",
+   "pitch": 1800,
+   "gain": -14,
+   "name": "press"
+  },
+  {
+   "at": 4.0,
+   "make": "hit",
+   "pitch": 90,
+   "gain": -10,
+   "name": "drop"
+  },
+  {
+   "at": 4.05,
+   "make": "whoosh",
+   "pitch": 0,
+   "gain": -18,
+   "name": "zoom"
+  },
+  {
+   "at": 6.6,
+   "make": "ping",
+   "pitch": 523,
+   "gain": -10,
+   "name": "name"
+  }
+ ],
+ "bed": {
+  "make": "drone",
+  "pitch": 110,
+  "gain": -26
+ },
+ "targets": {}
+}

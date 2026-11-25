@@ -1,0 +1,13 @@
+{
+ "kind": "launch",
+ "fps": 60,
+ "width": 1920,
+ "height": 1080,
+ "duration": 28.8,
+ "bpm": 150,
+ "voice": null,
+ "beats": [],
+ "words": [],
+ "sounds": [],
+ "targets": {}
+}

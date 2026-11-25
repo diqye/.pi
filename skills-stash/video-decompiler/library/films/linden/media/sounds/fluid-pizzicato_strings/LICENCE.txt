@@ -1,0 +1,7 @@
+FluidR3 General MIDI soundfont (as rendered in midi-js-soundfonts)
+pizzicato strings
+licence: Creative Commons Attribution 3.0 (CC BY 3.0), https://creativecommons.org/licenses/by/3.0/
+source: https://github.com/gleitz/midi-js-soundfonts
+credit: FluidR3_GM soundfont by Frank Wen, rendered by Benjamin Gleitzman (github.com/gleitz/midi-js-soundfonts), CC BY 3.0
+changes: none made here; these are three MP3 files as they were gathered from the source.
+The credit above is owed wherever a film that uses these sounds is published.

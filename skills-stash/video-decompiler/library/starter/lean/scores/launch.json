@@ -1,0 +1,82 @@
+{
+ "kind": "launch",
+ "fps": 30,
+ "width": 1920,
+ "height": 1080,
+ "duration": 8.0,
+ "voice": null,
+ "beats": [
+  {
+   "id": "open",
+   "from": 0.0,
+   "to": 2.0,
+   "shot": "close",
+   "words": "Meet Tidewater.",
+   "job": "open",
+   "key": [
+    "Tidewater"
+   ]
+  },
+  {
+   "id": "claim",
+   "from": 2.0,
+   "to": 4.4,
+   "shot": "medium",
+   "words": "Tide tables, read before you leave the harbour.",
+   "job": "running",
+   "key": [
+    "before"
+   ]
+  },
+  {
+   "id": "proof",
+   "from": 4.4,
+   "to": 6.2,
+   "shot": "number",
+   "number": "06:12",
+   "words": "Low water, to the minute.",
+   "job": "proof",
+   "key": [
+    "minute"
+   ]
+  },
+  {
+   "id": "close",
+   "from": 6.2,
+   "to": 8.0,
+   "shot": "wide",
+   "words": "Tidewater. Out now.",
+   "job": "statement"
+  }
+ ],
+ "words": [],
+ "sounds": [
+  {
+   "at": 0.0,
+   "make": "hit",
+   "pitch": 65,
+   "gain": -6,
+   "name": "open"
+  },
+  {
+   "at": 4.4,
+   "make": "ping",
+   "pitch": 784,
+   "gain": -10,
+   "name": "number"
+  },
+  {
+   "at": 6.2,
+   "make": "ping",
+   "pitch": 523,
+   "gain": -10,
+   "name": "name"
+  }
+ ],
+ "bed": {
+  "make": "drone",
+  "pitch": 110,
+  "gain": -24
+ },
+ "targets": {}
+}

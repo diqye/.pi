@@ -1,0 +1,5 @@
+numpy
+# below 5: on OpenCV 5.0.0 tools/see.py gets fast and faint moves wrong (6 of the 142 known answers in tests/test_see.py)
+opencv-python-headless<5
+Pillow
+psutil

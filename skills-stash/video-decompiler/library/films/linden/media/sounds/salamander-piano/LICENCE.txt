@@ -1,0 +1,7 @@
+Salamander Grand Piano V2 (as published in Tone.js's audio repository)
+grand piano (Yamaha C5)
+licence: Creative Commons Attribution 3.0 (CC BY 3.0), https://creativecommons.org/licenses/by/3.0/
+source: https://github.com/Tonejs/audio/tree/master/salamander
+credit: Salamander Grand Piano by Alexander Holm, CC BY 3.0 (via tonejs.github.io/audio/salamander)
+changes: none made here; these are nine MP3 files as they were gathered from the source.
+The credit above is owed wherever a film that uses these sounds is published.

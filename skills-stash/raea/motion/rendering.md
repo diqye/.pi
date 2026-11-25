@@ -1,0 +1,82 @@
+# Rendering and checking: raea render, raea check, stills
+
+## What to do
+
+- **`raea check` after every real change.** Render with the manifest, then check the export against the floor:
+  `raea render edit.tsx -o final.mp4 --manifest render.json` and
+  `raea check final.mp4 --manifest render.json --words words.json --perception perception.json [--platform tiktok]`.
+  It measures clipped text, text under a platform's buttons, text over the face, captions on too briefly to read,
+  caption contrast against the pixels behind them, frozen stretches, flashing past the limit, cues that miss their word, loudness, a sound that
+  stops dead or (with `--words`) fights the voice, and encoder blotching in the darks. Each finding is ranked P0 to P3
+  with its fix; it exits 1 while a P0 or P1 stands, and `-o check.json` writes them for the critique. Fix every error
+  in one pass before rendering again. A finding that ends `[also in …]` was in the earlier export too: what you changed
+  didn't move it, so don't repeat that change; try another, or say why it stands. A note is for the person, not a
+  reason to render again. An
+  exception in the composition (an unclamped value going NaN, keyframes out of order, a phrase `word()` can't find, a
+  missing prop) fails the render and names the line.
+- **Watch it as a viewer would once the piece is close.** `raea check` measures; it can't judge a frame cropped too
+  tight, speech without captions, text that's hard to read, an ending that stops mid-thought, or whether the message
+  lands. Look for those in the stills and the sheet before you answer.
+- **Stills to look at.** `raea render edit.tsx --at 15,63,144,270 -o stills/` renders those frames as PNGs; `raea media sheet
+  final.mp4 -o sheet.png` makes a contact sheet of the export. Pick the moments that matter (each cut, each part's entrance and settled state, the
+  hook at 0.5 s, the end card) and look at them all in one batch. Fix everything they show, then look again. Don't take
+  one still per tweak.
+- **Without `--manifest`**, `raea render` writes the export alone, without the measurements `raea check` reads. Render
+  another deliverable from its own file the same way (`raea render NAME.tsx -o NAME.mp4 --manifest NAME.json`) and
+  check it.
+- **Loudness** comes out at -14 LUFS integrated (±1) with true peak at or below -1 dBTP: raea levels each line of
+  dialogue (the `voice` bus, or footage on no bus) to the same loudness and masters the piece, so don't measure lines
+  or set `gainDb` to level them, and don't master the voice outside raea. `gainDb` is for a deliberate change, on top
+  of raea's level. `<Mix lufs={…} ceiling={…}>` sets another target.
+
+## Why
+
+The engine renders the same tree the person will get, so a still from it is the truth about layout: fonts, footage,
+3D and text overflow only show in pixels. `raea check` measures what a still can't (a clipped word, a frame of
+black, dead air), so the two together cover the floor.
+
+Looking in batches is the craft rule. One round of looking at the frames that matter, fixing everything, then
+looking again, finds more than a still per change and costs less.
+
+## Common mistakes
+
+- Judging layout from the TSX alone. Text overflow and contrast against footage only show in pixels.
+- Checking frame 0 only. Most bugs are at cues and joins.
+- Calling it done without listening. The voice must stay intelligible over the bed, and every sound should land on
+  its beat.
+- Answering while `raea check` still names a fault.
+
+## Bitrate, quality and dark material
+
+A video's bitrate follows its size and frame rate (about 20 Mbit/s at 1080p30, 80 at 4K30; VideoToolbox spends less on
+flat pictures), and `--kbps N` sets it. `--quality draft|high|master` (or 0..1: 0.6, 0.85, 0.95) asks for constant
+quality instead, each frame getting the bits it needs: `master` keeps thin type and hard vector edges clean at 4K
+(about 31 Mbit/s on flat motion graphics). Blotching in dark areas is the encoder's or the footage's own, and on a
+render made in a project `raea check` says which: the footage's is a note to pass on, never a reason to render again;
+for the encode's, render with `--quality master`. Dark material can also go out as PNG frames
+(`RAEA_READBACK=rgba raea render piece.tsx -o piece.frames/`). A `NAME.frames/` folder is never committed, and raea's storage dry run lists it a day after
+the render unless something names it.
+
+Which to ask for. A version made for notes (a cut to review, a shot that will be joined, a preview) takes no
+`--quality` flag: the default is already close to the picture `master` gives, in a fraction of the file. Measured on
+1080p24 film footage: the default 16 Mbit/s, `high` 30, `master` 87; against the `master` encode the default scores
+VMAF 99.5 (its worst frame 95.8) and `high` 99.7. So `master` on every review version is five times the disk for
+nothing a person sees, and a film reviewed ten times is ten gigabytes. Keep `master` for the one file that is
+delivered when it is motion graphics or type (thin edges at 4K are where it shows); deliver a film at `high`. A notes
+version takes no `--quality draft` either: constant quality has no ceiling, so on grain or noise `draft` can come
+out larger than the default.
+
+When a version is replaced, keep it, and never `rm` a render yourself: a person may want the earlier cut back, and an
+item, a note or a composition may still name it. Name versions `-vN` (`cut-v3.mp4`, not `cut3.mp4`) so raea can
+tell a version from a shot number, and put "final" in the name of a delivered file. When space is short, call
+`storage_plan`: it lists only versions with a newer one beside them, unused feed renders, frames and broken copies,
+never a file anything names, and it says why each is listed. Show the person that list, and only on their yes call
+`storage_trash` with it: the list waits in Settings › Storage for the person to move, and what they move goes to the
+Trash, where they can put it back.
+
+## A person's hand edits
+
+A person's hand edit in the raea app comes back as props, so keep them when you revise: `<Composition ... edit={{
+segments: [[0, 412], [430, 3285]] }}>` plays those frame ranges one after another (a trim, a split, a cut word), and
+`<Nudge x={0} y={-156}>` around an element moves it by those px. Edit the composition under them; change the segments
+only when the cut itself should change.

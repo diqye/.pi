@@ -1,0 +1,20 @@
+{
+ "kind": "explainer",
+ "fps": 30, "width": 1920, "height": 1080, "duration": 9.0,
+ "voice": null,
+ "beats": [
+  {"id": "open", "from": 0.0, "to": 2.2, "shot": "close", "words": "Lightning.", "job": "open", "key": ["Lightning"]},
+  {"id": "turn", "from": 2.2, "to": 4.8, "shot": "medium", "words": "Count the seconds, and you know how far.", "job": "running", "key": ["seconds"]},
+  {"id": "proof", "from": 4.8, "to": 6.8, "shot": "number", "number": "3 s", "words": "Three seconds is one kilometre.", "job": "proof", "key": ["one", "kilometre"]},
+  {"id": "close", "from": 6.8, "to": 9.0, "shot": "wide", "words": "Your phone does the same.", "job": "statement"}
+ ],
+ "words": [],
+ "sounds": [
+  {"at": 0.0, "make": "hit", "pitch": 55, "gain": -6, "name": "the flash"},
+  {"at": 2.2, "make": "tick", "pitch": 880, "gain": -14, "name": "count"},
+  {"at": 4.8, "make": "ping", "pitch": 660, "gain": -10, "name": "the proof lands"},
+  {"at": 6.8, "make": "ping", "pitch": 440, "gain": -10, "name": "the close"}
+ ],
+ "bed": {"make": "drone", "pitch": 110, "gain": -24},
+ "targets": {}
+}

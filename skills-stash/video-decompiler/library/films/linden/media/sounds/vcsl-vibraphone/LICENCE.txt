@@ -1,0 +1,6 @@
+Versilian Community Sample Library
+vibraphone
+licence: CC0 1.0 (public domain dedication), https://creativecommons.org/publicdomain/zero/1.0/
+source: https://github.com/sgossner/VCSL
+credit: Versilian Community Sample Library (Versilian Studios), CC0: no credit needed
+changes: the source's WAV files stored as FLAC, which is lossless: each decodes to the same 16-bit samples.

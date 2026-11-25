@@ -9,3 +9,6 @@ agent/sessions/
 agent/npm/
 
 .DS_Store
+
+# Python 字节码缓存
+__pycache__/

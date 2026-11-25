@@ -1,0 +1,47 @@
+Video Decompiler
+Copyright (c) 2026 James Dimachkie
+Licensed under the MIT License (see LICENSE).
+
+This repository includes or adapts the following work by others.
+
+1. earshot, by Leon Lin (https://github.com/Leonxlnx/earshot), MIT License. An earlier version of this skill adapted
+   its detection of sound events in a tool that has since been removed (tools/ear.py). None of that code is in this
+   repository now; the credit stays for the idea.
+
+2. Fonts in skills/video-decompiler/library/media/fonts, as packaged by Fontsource. They are not under the MIT
+   License. Each is under the SIL Open Font License, Version 1.1 (https://openfontlicense.org), which lets you use,
+   study, modify and redistribute them, and forbids selling them on their own.
+   - Inter (inter-700-normal.woff2, inter-latin-600-normal.woff2). Copyright (c) 2016 The Inter Project Authors
+     (https://github.com/rsms/inter).
+   - JetBrains Mono (jetbrains-mono-400-normal.woff2). Copyright 2020 The JetBrains Mono Project Authors
+     (https://github.com/JetBrains/JetBrainsMono).
+
+Not included, and needed to use the skill: raea (https://raea.io), a separate project under its own licence.
+
+Worked films (skills/video-decompiler/library/films)
+
+  plusone/media/art: crops of public-domain works from the open-access collections of the Metropolitan Museum of Art,
+  the Art Institute of Chicago and the Cleveland Museum of Art, each flagged public domain or CC0 in the museum's own
+  record. Titles, artists, museums and links: plusone/media/art/SOURCES.md.
+
+  plusone/media/fonts: Fraunces, Playfair Display, Anton, Bricolage Grotesque and DM Serif Display, each under the SIL
+  Open Font License 1.1 (the licence texts are beside the files). Geist and Geist Mono (Vercel, SIL Open Font License
+  1.1) are embedded in each film's kit/fonts.gen.ts; their licence texts are in each film's media/fonts.
+
+  onoma/media/fonts/Geist-VF.ttf: Geist (Vercel), the same font onoma/kit/fonts.gen.ts embeds, kept as a file for
+  onoma/tools/glyphs.py. SIL Open Font License 1.1; the licence text is beside it.
+
+  linden/media/art: crops and reductions of public-domain works from the open-access collections of the
+  Metropolitan Museum of Art, the Art Institute of Chicago and the Cleveland Museum of Art, each flagged public
+  domain or CC0 in the museum's own record. Titles, makers, museums and links: linden/media/art/SOURCES.md.
+
+  linden/media/fonts: Fraunces and Bricolage Grotesque, each under the SIL Open Font License 1.1, with Geist and
+  Geist Mono embedded in linden/kit/fonts.gen.ts (Vercel, SIL Open Font License 1.1); the licence texts are beside
+  the files.
+
+  linden/media/sounds: recorded instruments, each folder with its LICENCE.txt. Salamander Grand Piano V2 by
+  Alexander Holm, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), via github.com/Tonejs/audio. Pizzicato
+  strings from the FluidR3_GM soundfont by Frank Wen, rendered by Benjamin Gleitzman
+  (github.com/gleitz/midi-js-soundfonts), CC BY 3.0. Vibraphone and glockenspiel from the Versilian Community Sample
+  Library (github.com/sgossner/VCSL, Versilian Studios), CC0; their WAV files are stored as FLAC, losslessly. A film
+  made with the piano or the strings owes their credit wherever it is published.

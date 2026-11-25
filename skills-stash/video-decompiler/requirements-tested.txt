@@ -1,0 +1,7 @@
+# The versions every test last passed with, on hosted Linux, Windows and macOS and on the laptop the films were made
+# on (Python 3.12, ffmpeg 9, 13 November 2026). requirements.txt is what to install; to get this environment exactly:
+#   python -m pip install -r requirements.txt -c requirements-tested.txt
+numpy==2.5.4
+opencv-python-headless==4.14.0.94
+Pillow==13.0.0
+psutil==7.2.2
